@@ -20,7 +20,7 @@ class AppColors {
   // --- Background Colors (추가 예정) ---
 
   // --- Text Colors ---
-  static const Color black = Color(0xFF222222);
+  static const Color gray900 = Color(0xFF222222);
   static const Color gray500 = Color(0xFFAAAAAA);
   static const Color gray300 = Color(0xFFDDDDDD);
   static const Color gray200 = Color(0xFFEEEEEE);
