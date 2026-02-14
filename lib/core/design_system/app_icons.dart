@@ -4,6 +4,7 @@ class AppIcons {
   static const String _basePath = 'assets/icons';
 
   static const String add = '$_basePath/ic_add.svg';
+  static const String back = '$_basePath/ic_back.svg';
   static const String bell = '$_basePath/ic_bell.svg';
   static const String chatDots = '$_basePath/ic_chat-dots.svg';
   static const String creditCard = '$_basePath/ic_credit-card.svg';
