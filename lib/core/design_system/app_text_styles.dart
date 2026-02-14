@@ -6,46 +6,84 @@ class AppTypography {
 
   static const String _fontFamily = 'Roboto';
 
-  // --- Headlines ---
-  static const TextStyle h1 = TextStyle(
-    fontFamily: _fontFamily,
-    fontSize: 32,
-    fontWeight: FontWeight.w700, // Bold
-    height: 1.25,
-    color: AppColors.black,
-  );
-
-  static const TextStyle h2 = TextStyle(
+  // 9. Highlight Bold 24pt
+  static const TextStyle highlightBold24 = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 24,
     fontWeight: FontWeight.w700,
-    height: 1.3,
-    color: AppColors.black,
+    height: 1.2,
+    color: AppColors.gray900,
   );
 
-  // --- Body (본문) ---
-  static const TextStyle body1 = TextStyle(
+  // 1. Large text 20pt
+  static const TextStyle large20 = TextStyle(
+    fontFamily: _fontFamily,
+    fontSize: 20,
+    fontWeight: FontWeight.w400,
+    height: 1.3,
+    color: AppColors.gray900,
+  );
+
+  // 2. Large text 16pt
+  static const TextStyle large16 = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 16,
-    fontWeight: FontWeight.w500, // Medium
-    height: 1.5,
-    color: AppColors.black,
+    fontWeight: FontWeight.w400,
+    height: 1.4,
+    color: AppColors.gray900,
   );
 
-  static const TextStyle body2 = TextStyle(
+  // 3. Large text Bold 16pt
+  static const TextStyle largeBold16 = TextStyle(
+    fontFamily: _fontFamily,
+    fontSize: 16,
+    fontWeight: FontWeight.w700,
+    height: 1.4,
+    color: AppColors.gray900,
+  );
+
+  // 4. Middle text 14pt
+  static const TextStyle middle14 = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 14,
-    fontWeight: FontWeight.w400, // Regular
-    height: 1.5,
+    fontWeight: FontWeight.w400,
+    height: 1.4,
+    color: AppColors.gray900,
+  );
+
+  // 5. Small text 12pt
+  static const TextStyle small12 = TextStyle(
+    fontFamily: _fontFamily,
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+    height: 1.4,
+    color: AppColors.gray900,
+  );
+
+  // 6. Small text Bold 12pt
+  static const TextStyle smallBold12 = TextStyle(
+    fontFamily: _fontFamily,
+    fontSize: 12,
+    fontWeight: FontWeight.w700,
+    height: 1.4,
+    color: AppColors.gray900,
+  );
+
+  // 7. Small text 10pt
+  static const TextStyle small10 = TextStyle(
+    fontFamily: _fontFamily,
+    fontSize: 10,
+    fontWeight: FontWeight.w400,
+    height: 1.4,
     color: AppColors.gray500,
   );
 
-  // --- Labels / Captions ---
-  static const TextStyle label = TextStyle(
+  // 8. Small text 8pt
+  static const TextStyle small8 = TextStyle(
     fontFamily: _fontFamily,
-    fontSize: 12,
-    fontWeight: FontWeight.w600,
-    letterSpacing: 0.5,
+    fontSize: 8,
+    fontWeight: FontWeight.w400,
+    height: 1.4,
     color: AppColors.gray500,
   );
 }
