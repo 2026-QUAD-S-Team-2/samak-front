@@ -53,7 +53,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppHeader(title: _titles[_selectedIndex]),
+      appBar: _selectedIndex == 0 ? null : AppHeader(title: _titles[_selectedIndex]),
       body: _screens[_selectedIndex],
 
       bottomNavigationBar: AppBottomNavigationBar(

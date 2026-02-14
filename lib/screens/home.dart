@@ -15,32 +15,40 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
+    final double statusBarHeight = MediaQuery.of(context).padding.top;
+
     return Scaffold(
       backgroundColor: AppColors.gray100,
-      body: SafeArea(
+      body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            SizedBox(height: statusBarHeight + AppDimensions.bottomSafeArea),
+
+            // 상단 프로필 영역
             _ProfileSection(),
-            
+
             AppDimensions.verticalGap16,
-            
+
+            // 배너 카드
             Padding(
               padding: AppDimensions.screenEdgePadding,
               child: _BannerCard(),
             ),
-            
+
             AppDimensions.verticalGap24,
-            
+
+            // 공고 확인 섹션
             _AnnouncementSection(),
-            
+
             AppDimensions.verticalGap24,
-            
+
+            // 오늘의 퀴즈 섹션
             _QuizSection(),
-            
+
             AppDimensions.verticalGap24,
           ],
-        )
+        ),
       ),
     );
   }
@@ -219,7 +227,7 @@ class _AnnouncementSection extends StatelessWidget {
           child: Column(
             children: [
               _AnnouncementCard(
-                companyName: '\'00회사\' 공고',
+                companyName: '\'OO회사\' 공고',
                 dateRange: '2.01 - 2.24',
                 memberCount: 3,
                 hasMoreMembers: true,
@@ -285,44 +293,53 @@ class _AnnouncementCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 12,),
 
-                Row(
-                  children: [
-                    ...List.generate(
-                      memberCount,
-                      (index) => Padding(
-                        padding: EdgeInsets.only(
-                          left: index == 0 ? 0: 4,
-                        ),
-                        child: CircleAvatar(
-                          radius: 14,
-                          backgroundColor: isActive
-                          ? AppColors.gray900
-                          : AppColors.gray300,
-                        ),
-                      )
-                    ),
-                    if (hasMoreMembers)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 4),
-                        child: Container(
-                          width: 28,
-                          height: 28,
-                          decoration: BoxDecoration(
-                            color: AppColors.gray200,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Center(
-                            child: Text(
-                              '+$memberCount',
-                              style: AppTypography.small10.copyWith(
-                                fontWeight: FontWeight.w600
-                              )
+                SizedBox(
+                  height: 28, // 아바타 높이에 맞춤
+                  child: Stack(
+                    children: [
+                      ...List.generate(
+                        memberCount + (hasMoreMembers ? 1 : 0),
+                            (index) {
+                          if (index == memberCount && hasMoreMembers) {
+                            return Positioned(
+                              left: index * 20.0,
+                              child: Container(
+                                width: 28,
+                                height: 28,
+                                decoration: BoxDecoration(
+                                  color: AppColors.gray200,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.white, width: 2), // 경계선 추가
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    '+3',
+                                    style: AppTypography.small10.copyWith(fontWeight: FontWeight.w600),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+
+                          // 일반 아바타 배치
+                          return Positioned(
+                            left: index * 20.0,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 2),
+                              ),
+                              child: CircleAvatar(
+                                radius: 12,
+                                backgroundColor: isActive ? AppColors.gray900 : AppColors.gray300,
+                              ),
                             ),
-                          ),
-                      ),
-                    )
-                  ],
-                )
+                          );
+                        },
+                      )
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
