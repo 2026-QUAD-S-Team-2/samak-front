@@ -16,9 +16,12 @@ class AppBottomNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double systemBottomPadding = MediaQuery.of(context).padding.bottom;
+    const double contentHeight = AppDimensions.navigatorBarHeight; // 55.0
+    final double finalBottomGap = systemBottomPadding > 0 ? systemBottomPadding : 24.0;
+
     return Container(
-      height: AppDimensions.navigatorBarHeight,
-      width: double.infinity,
+      // width: double.infinity,
       decoration: const BoxDecoration(
         color: AppColors.gray100,
         borderRadius: BorderRadius.only(
@@ -27,22 +30,29 @@ class AppBottomNavigationBar extends StatelessWidget {
         ),
         border: Border(
           top: BorderSide(color: AppColors.gray200, width: 1),
-          left: BorderSide(color: AppColors.gray200, width: 1),
-          right: BorderSide(color: AppColors.gray200, width: 1),
         ),
       ),
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppDimensions.navBarHorizontalPadding,
-        vertical: AppDimensions.navBarVerticalPadding,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          _buildNavItem(index: 0, icon: 'assets/icons/ic_home.svg', label: '홈', gap: 4),
-          _buildNavItem(index: 1, icon: 'assets/icons/ic_heart.svg', label: '소식', gap: 7),
-          _buildNavItem(index: 2, icon: 'assets/icons/ic_add.svg', label: '분석', gap: 5),
-          _buildNavItem(index: 3, icon: 'assets/icons/ic_chat-dots.svg', label: '게시판', gap: 6),
-          _buildNavItem(index: 4, icon: 'assets/icons/ic_user.svg', label: '프로필', gap: 6),
+          Container(
+            height: contentHeight,
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppDimensions.navBarHorizontalPadding,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                _buildNavItem(index: 0, icon: 'assets/icons/ic_home.svg', label: '홈', gap: 4),
+                _buildNavItem(index: 1, icon: 'assets/icons/ic_heart.svg', label: '소식', gap: 3),
+                _buildNavItem(index: 2, icon: 'assets/icons/ic_add.svg', label: '분석', gap: 5),
+                _buildNavItem(index: 3, icon: 'assets/icons/ic_chat-dots.svg', label: '게시판', gap: 6),
+                _buildNavItem(index: 4, icon: 'assets/icons/ic_user.svg', label: '프로필', gap: 6),
+              ],
+            ),
+          ),
+          SizedBox(height: finalBottomGap),
         ],
       ),
     );
@@ -57,7 +67,7 @@ class AppBottomNavigationBar extends StatelessWidget {
     final bool isSelected = currentIndex == index;
     final Color contentColor = isSelected ? AppColors.gray900 : AppColors.gray500;
 
-    return Expanded( // 5등분을 위해 Expanded 사용
+    return Expanded(
       child: GestureDetector(
         onTap: () => onTap(index),
         behavior: HitTestBehavior.opaque,
