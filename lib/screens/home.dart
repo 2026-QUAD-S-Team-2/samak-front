@@ -18,7 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
 
     return Scaffold(
-      backgroundColor: AppColors.gray100,
+      backgroundColor: AppColors.background,
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -87,15 +87,14 @@ class _ProfileSection extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: AppColors.highlight,
-              borderRadius: BorderRadius.circular(8)
+              color: Color(0xFFF4F5FF),
+              borderRadius: BorderRadius.circular(50)
             ),
             child: Center(
               child: SvgPicture.asset(
-                AppIcons.chatDots,
+                AppIcons.message2,
                 width: 20,
                 height: 20,
-                colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
               ),
             ),
           ),
@@ -106,16 +105,15 @@ class _ProfileSection extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: AppColors.secondary,
-              borderRadius: BorderRadius.circular(8)
+              color: Color(0xFFF4F5FF),
+              borderRadius: BorderRadius.circular(50)
             ),
             child: Center(
-              child: SvgPicture.asset(
-                AppIcons.bell,
-                width: 20,
-                height: 20,
-                colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
-              )
+              child: Icon(
+                Icons.notifications,
+                color: AppColors.warning,
+                size: 20,
+              ),
             )
           )
         ],
@@ -132,7 +130,7 @@ class _BannerCard extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.primary,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
@@ -144,14 +142,16 @@ class _BannerCard extends StatelessWidget {
                   '취업 사기가 걱정되시나요?',
                   style: AppTypography.large16.copyWith(
                     color: Colors.white,
-                    fontWeight: FontWeight.w700
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.5
                   ),
                 ),
                 const SizedBox(height: 4,),
                 Text(
                   '사막 AI 분석이 공고를 검증해 드려요',
-                  style: AppTypography.middle14.copyWith(
-                    color: Colors.white.withOpacity(0.8),
+                  style: AppTypography.middle13.copyWith(
+                    color: AppColors.purple100,
+                    letterSpacing: -0.5
                   ),
                 )
               ],
@@ -160,15 +160,11 @@ class _BannerCard extends StatelessWidget {
           Container(
             width: 80,
             height: 80,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              Icons.flight,
-              size: 40,
-              color: Colors.white.withOpacity(0.5),
-            ),
+            child: Image(
+              image: AssetImage(AppIcons.banner),
+              width: 117,
+              height: 85,
+            )
           ),
           // 배너 일러스트
         ],
@@ -180,71 +176,82 @@ class _BannerCard extends StatelessWidget {
 class _AnnouncementSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: AppDimensions.screenEdgePadding,
-          child: Row(
-            children: [
-              Text(
-                '공고 확인',
-                style: AppTypography.largeBold16,
-              ),
-              const SizedBox(width: 8,),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 2,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.secondary,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '2',
-                  style: AppTypography.smallBold12.copyWith(
-                    color: Colors.white
+    return Container(
+      margin: AppDimensions.screenEdgePadding,
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.surfacePrimary,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: AppDimensions.screenEdgePadding,
+            child: Row(
+              children: [
+                Text(
+                  '공고 확인',
+                  style: AppTypography.largeBold16.copyWith(
+                    letterSpacing: -0.5
                   ),
                 ),
-              )
-            ],
-          ),
-        ),
-        const SizedBox(height: 8,),
-        Padding(
-          padding: AppDimensions.screenEdgePadding,
-          child: Text(
-            '김땡땡 님이 관심 있는 분야의 공고가 올라왔어요',
-            style: AppTypography.middle14.copyWith(
-              color: AppColors.gray500
+                const SizedBox(width: 8,),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.purple100,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    '2',
+                    style: AppTypography.smallBold12.copyWith(
+                      color: AppColors.purple500
+                    ),
+                  ),
+                )
+              ],
             ),
           ),
-        ),
-        const SizedBox(height: 16,),
-        Padding(
-          padding: AppDimensions.screenEdgePadding,
-          child: Column(
-            children: [
-              _AnnouncementCard(
-                companyName: '\'OO회사\' 공고',
-                dateRange: '2.01 - 2.24',
-                memberCount: 3,
-                hasMoreMembers: true,
-                isActive: true,
+          const SizedBox(height: 8,),
+          Padding(
+            padding: AppDimensions.screenEdgePadding,
+            child: Text(
+              '김땡땡 님이 관심 있는 분야의 공고가 올라왔어요',
+              style: AppTypography.small12.copyWith(
+                color: AppColors.textSecondary,
+                letterSpacing: -0.5
               ),
-              AppDimensions.verticalGap12,
-              _AnnouncementCard(
-                companyName: '\'OO회사A\' 공고',
-                dateRange: '2.08 - 2.26',
-                memberCount: 3,
-                hasMoreMembers: false,
-                isActive: false,
-              ),
-            ],
+            ),
           ),
-        )
-      ],
+          const SizedBox(height: 16,),
+          Padding(
+            padding: AppDimensions.screenEdgePadding,
+            child: Column(
+              children: [
+                _AnnouncementCard(
+                  companyName: '\'OO회사\' 공고',
+                  dateRange: '2.01 - 2.24',
+                  memberCount: 3,
+                  hasMoreMembers: true,
+                  isActive: true,
+                ),
+                AppDimensions.verticalGap12,
+                _AnnouncementCard(
+                  companyName: '\'OOO회사\' 공고',
+                  dateRange: '2.08 - 2.26',
+                  memberCount: 3,
+                  hasMoreMembers: false,
+                  isActive: false,
+                ),
+              ],
+            ),
+          )
+        ],
+      ),
     );
   }
 }
@@ -269,15 +276,12 @@ class _AnnouncementCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.gray100,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.gray900.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          )
-        ]
+        border: Border.all(
+          color: AppColors.gray200,
+          width: 1
+        ),
       ),
       child: Row(
         children: [
@@ -289,6 +293,7 @@ class _AnnouncementCard extends StatelessWidget {
                   companyName,
                   style: AppTypography.middle14.copyWith(
                     fontWeight: FontWeight.w500,
+                    letterSpacing: -0.5
                   ),
                 ),
                 const SizedBox(height: 12,),
@@ -350,19 +355,17 @@ class _AnnouncementCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: AppColors.gray300,
-                      shape: BoxShape.circle,
-                    ),
+                  SvgPicture.asset(
+                    AppIcons.clock,
+                    width: 16,
+                    height: 16,
                   ),
                   const SizedBox(width: 4,),
                   Text(
                     dateRange,
                     style: AppTypography.small12.copyWith(
-                      color: AppColors.gray500,
+                      color: AppColors.textSecondary,
+                      letterSpacing: -0.5
                     ),
                   )
                 ],
@@ -371,18 +374,20 @@ class _AnnouncementCard extends StatelessWidget {
 
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
+                  horizontal: 18,
+                  vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(20),
+                  color: AppColors.purple600,
+                  borderRadius: BorderRadius.circular(100),
                 ),
                 child: Text(
                   '분석하기',
-                  style: AppTypography.small12.copyWith(
+                  style: AppTypography.small10.copyWith(
                     color: Colors.white,
-                    fontWeight: FontWeight.w600
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.5,
+                    height: 1.2,
                   ),
                 ),
               )
@@ -397,99 +402,107 @@ class _AnnouncementCard extends StatelessWidget {
 class _QuizSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: AppDimensions.screenEdgePadding,
-          child: Row(
-            children: [
-              Text(
-                '오늘의 퀴즈',
-                style: AppTypography.largeBold16,
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.info,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '3',
-                  style: AppTypography.smallBold12.copyWith(
-                    color: Colors.white,
+    return Container(
+      margin: AppDimensions.screenEdgePadding,
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.surfacePrimary,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: AppDimensions.screenEdgePadding,
+            child: Row(
+              children: [
+                Text(
+                  '오늘의 퀴즈',
+                  style: AppTypography.largeBold16.copyWith(
+                    letterSpacing: -0.5
                   ),
                 ),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 8),
-
-        Padding(
-          padding: AppDimensions.screenEdgePadding,
-          child: Text(
-            '퀴즈를 완료하면 사막 OO시스 포인트가 쌓여요!',
-            style: AppTypography.middle14.copyWith(
-              color: AppColors.gray500,
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 16),
-
-        // 퀴즈 카드
-        Padding(
-          padding: AppDimensions.screenEdgePadding,
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.purple100,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    '3',
+                    style: AppTypography.smallBold12.copyWith(
+                      color: AppColors.primary,
+                    ),
+                  ),
                 ),
               ],
             ),
+          ),
+
+          const SizedBox(height: 8),
+
+          Padding(
+            padding: AppDimensions.screenEdgePadding,
+            child: Text(
+              '퀴즈를 완료하면 사막 오아시스 포인트가 쌓여요!',
+              style: AppTypography.small12.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // 퀴즈 카드
+          Padding(
+            padding: AppDimensions.screenEdgePadding,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // 퀴즈 질문
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Q 아이콘
-                    Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: AppColors.success,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: Text(
-                          'Q',
-                          style: AppTypography.smallBold12.copyWith(
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.gray100,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: AppColors.gray200,
+                      width: 1
+                    )
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Q 아이콘
+                      Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: AppColors.success,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Icon(
+                            Icons.bolt,
                             color: Colors.white,
+                            size: 12,
                           ),
                         ),
                       ),
-                    ),
 
-                    const SizedBox(width: 12),
+                      const SizedBox(width: 12),
 
-                    Expanded(
-                      child: Text(
-                        '취업 사기가 가장 많이 발생하는 나라는 캄보디아다.',
-                        style: AppTypography.middle14,
+                      Expanded(
+                        child: Text(
+                          '취업 사기가 가장 많이 발생하는 나라는 캄보디아다.',
+                          style: AppTypography.middle14.copyWith(
+                            letterSpacing: -0.5
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
 
                 const SizedBox(height: 16),
@@ -517,8 +530,8 @@ class _QuizSection extends StatelessWidget {
               ],
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -536,17 +549,17 @@ class _QuizButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
         color: isCorrect ? AppColors.info : AppColors.gray200,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(5),
       ),
       child: Center(
         child: Text(
           label,
-          style: AppTypography.large16.copyWith(
+          style: AppTypography.highlightBold24.copyWith(
             color: isCorrect ? Colors.white : AppColors.gray500,
-            fontWeight: FontWeight.w700,
+            height: 1.0
           ),
         ),
       ),

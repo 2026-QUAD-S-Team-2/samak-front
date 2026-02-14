@@ -42,6 +42,14 @@ class AppTypography {
     color: AppColors.gray900,
   );
 
+  // 3.5 Middle text 13pt
+  static const TextStyle middle13 = TextStyle(
+    fontFamily: _fontFamily,
+    fontSize: 13,
+    fontWeight: FontWeight.w400,
+    height: 1.4,
+  );
+
   // 4. Middle text 14pt
   static const TextStyle middle14 = TextStyle(
     fontFamily: _fontFamily,

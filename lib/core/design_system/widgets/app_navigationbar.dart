@@ -24,7 +24,7 @@ class AppBottomNavigationBar extends StatelessWidget {
     return Container(
       // width: double.infinity,
       decoration: const BoxDecoration(
-        color: AppColors.gray100,
+        color: Color(0xFFFBFBFD),
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(10),
           topRight: Radius.circular(10),
