@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:samak_fe/core/design_system/app_icons.dart';
 import '../app_colors.dart';
 import '../app_dimensions.dart';
 import '../app_text_styles.dart';
@@ -44,11 +45,51 @@ class AppBottomNavigationBar extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                _buildNavItem(index: 0, icon: 'assets/icons/ic_home.svg', label: '홈', gap: 4),
-                _buildNavItem(index: 1, icon: 'assets/icons/ic_heart.svg', label: '소식', gap: 3),
-                _buildNavItem(index: 2, icon: 'assets/icons/ic_add.svg', label: '분석', gap: 5),
-                _buildNavItem(index: 3, icon: 'assets/icons/ic_chat-dots.svg', label: '게시판', gap: 6),
-                _buildNavItem(index: 4, icon: 'assets/icons/ic_user.svg', label: '프로필', gap: 6),
+                _buildNavItem(
+                  index: 0,
+                  icon: AppIcons.home,
+                  selectedIcon: AppIcons.home,
+                  label: '홈',
+                  gap: 4,
+                  iconWidth: 22.5,
+                  iconHeight: 22.5,
+                ),
+                _buildNavItem(
+                  index: 1,
+                  icon: AppIcons.heart,
+                  selectedIcon: AppIcons.heart,
+                  label: '소식',
+                  gap: 3,
+                  iconWidth: 25,
+                  iconHeight: 23,
+                ),
+                _buildNavItem(
+                  index: 2,
+                  icon: AppIcons.add,
+                  selectedIcon: AppIcons.add,
+                  label: '분석',
+                  gap: 5,
+                  iconWidth: 21,
+                  iconHeight: 21.19,
+                ),
+                _buildNavItem(
+                  index: 3,
+                  icon: AppIcons.chatDots,
+                  selectedIcon: AppIcons.chatDots,
+                  label: '게시판',
+                  gap: 6,
+                  iconWidth: 24,
+                  iconHeight: 22,
+                ),
+                _buildNavItem(
+                  index: 4,
+                  icon: AppIcons.user,
+                  selectedIcon: AppIcons.user,
+                  label: '프로필',
+                  gap: 6,
+                  iconWidth: 23,
+                  iconHeight: 22,
+                ),
               ],
             ),
           ),
@@ -61,10 +102,15 @@ class AppBottomNavigationBar extends StatelessWidget {
   Widget _buildNavItem({
     required int index,
     required String icon,
+    required String selectedIcon,
     required String label,
     required double gap,
+    required double iconWidth,
+    required double iconHeight,
   }) {
     final bool isSelected = currentIndex == index;
+
+    final String activeIcon = isSelected ? selectedIcon : icon;
     final Color contentColor = isSelected ? AppColors.gray900 : AppColors.gray500;
 
     return Expanded(
@@ -75,10 +121,10 @@ class AppBottomNavigationBar extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             SvgPicture.asset(
-              icon,
+              activeIcon,
               colorFilter: ColorFilter.mode(contentColor, BlendMode.srcIn),
-              width: 18, // 아이콘 크기는 적절히 조절
-              height: 18,
+              width: iconWidth,
+              height: iconHeight,
             ),
             SizedBox(height: gap),
             Text(
