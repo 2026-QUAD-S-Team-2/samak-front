@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'core/design_system/widgets/app_header.dart';
+import 'core/design_system/widgets/app_navigationbar.dart';
+import 'core/design_system/app_text_styles.dart';
 
 void main() {
   runApp(const SamakFEApp());
@@ -10,44 +13,39 @@ class SamakFEApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false, // 오른쪽 상단 디버그 띠 제거
+      debugShowCheckedModeBanner: false,
       title: 'SamakFE',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
         useMaterial3: true,
       ),
-      home: const HealthCheckScreen(),
+      home: MainScreen(),
     );
   }
 }
 
-class HealthCheckScreen extends StatelessWidget {
-  const HealthCheckScreen({super.key});
+class MainScreen extends StatefulWidget {
+  @override
+  _MainScreenState createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+  int _selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('SamakFE Health Check'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.check_circle_outline, size: 100, color: Colors.green),
-            const SizedBox(height: 20),
-            const Text(
-              '프로젝트 세팅 완료!',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              '현재 시간: ${DateTime.now().toString().split('.')[0]}',
-              style: const TextStyle(color: Colors.grey),
-            ),
-          ],
-        ),
+      appBar: const AppHeader(title: "홈 화면"),
+      body: Center(child: Text("콘텐츠 영역", style: AppTypography.large20)),
+
+      // 우리가 만든 커스텀 네비게이션 바
+      bottomNavigationBar: AppBottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
       ),
     );
   }
