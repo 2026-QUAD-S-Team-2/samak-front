@@ -29,6 +29,7 @@ class AppIcons {
   static const String search = '$_basePath/ic_search.svg';
   static const String settings = '$_basePath/ic_settings.svg';
   static const String settingsLine = '$_basePath/ic_settings-line.svg';
+  static const String smileyFace = '$_basePath/ic_smileyface.svg';
   static const String twoLine = '$_basePath/ic_two-line-horizontal.svg';
   static const String user = '$_basePath/ic_user.svg';
   static const String userFilled = '$_basePath/ic_user_filled.svg';

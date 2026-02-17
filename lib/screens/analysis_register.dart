@@ -5,6 +5,7 @@ import '../core/design_system/app_dimensions.dart';
 import '../core/design_system/app_text_styles.dart';
 import '../core/design_system/widgets/app_header.dart';
 import '../core/design_system/app_icons.dart';
+import '../screens/analysis_result.dart';
 
 class AnalysisRegisterScreen extends StatefulWidget {
   final VoidCallback? onBack;
@@ -58,7 +59,14 @@ class _AnalysisRegisterScreenState
       builder: (_) => _CompletionBottomSheet(
         onConfirm: () {
           Navigator.of(context).pop();
-          widget.onConfirmResult?.call();
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => AnalysisResultScreen(
+                onBack: () => Navigator.of(context).pop(),
+                // TODO: 등록된 공고 데이터 → AnalysisResultData 변환 로직 연결 필요 (서버 응답 연동 시)
+              ),
+            ),
+          );
         },
       ),
     );
