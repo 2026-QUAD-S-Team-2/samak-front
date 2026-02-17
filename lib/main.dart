@@ -4,6 +4,7 @@ import 'core/design_system/widgets/app_navigationbar.dart';
 import 'core/design_system/app_text_styles.dart';
 import 'core/design_system/app_colors.dart';
 import 'screens/home.dart';
+import 'screens/analysis_list.dart';
 
 void main() {
   runApp(const SamakFEApp());
@@ -34,28 +35,33 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    _PlaceholderScreen(title: '소식'),
-    _PlaceholderScreen(title: '분석'),
-    _PlaceholderScreen(title: '게시판'),
-    _PlaceholderScreen(title: '프로필'),
-  ];
+  List<Widget> _buildScreens() {
+    return [
+      const HomeScreen(),
+      _PlaceholderScreen(title: '소식'),
+      AnalysisListScreen(
+        onBackToHome: () => setState(() => _selectedIndex = 0),
+      ),
+      _PlaceholderScreen(title: '게시판'),
+      _PlaceholderScreen(title: '프로필'),
+    ];
+  }
 
   final List<String> _titles = [
     ' ',
     '소식',
-    '분석',
+    '분석 전체 리스트',
     '게시판',
     '프로필',
   ];
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: _selectedIndex == 0 ? null : AppHeader(title: _titles[_selectedIndex]),
-      body: _screens[_selectedIndex],
+    final bool showAppBar = _selectedIndex != 0 && _selectedIndex != 2;
 
+    return Scaffold(
+      appBar: showAppBar ? AppHeader(title: _titles[_selectedIndex]) : null,
+      body: _buildScreens()[_selectedIndex],
       bottomNavigationBar: AppBottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) {

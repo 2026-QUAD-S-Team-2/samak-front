@@ -5,15 +5,15 @@ class AppDimensions {
 
   // --- [1] System & Bar Heights ---
   static const double statusBarHeight = 52.0;
-  static const double topBarHeight = 64.0;
+  static const double topBarHeight = 65.0;
   static const double totalTopHeight = 116.0;
   static const double bottomSafeArea = 24.0;
-  static const double navigatorBarHeight = 55.0;
+  static const double navigatorBarHeight = 63.0;
   static const double navBarHorizontalPadding = 32.0;
   static const double navBarVerticalPadding = 10.0;
 
   // --- [2] Spacing & Padding (Basic) ---
-  static const double screenPadding = 16.0;   // 화면 가장 자리 ↔ 콘텐츠
+  static const double screenPadding = 16.0;   // 화면 가장 자리 <-> 콘텐츠
   static const double cardPadding = 16.0;     // 카드 내부 Padding
 
   static const double gapCardToCardSmall = 12.0; // 카드 ↔ 카드 (좁게)
