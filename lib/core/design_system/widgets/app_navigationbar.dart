@@ -22,7 +22,6 @@ class AppBottomNavigationBar extends StatelessWidget {
     final double finalBottomGap = systemBottomPadding > 0 ? systemBottomPadding : 24.0;
 
     return Container(
-      // width: double.infinity,
       decoration: const BoxDecoration(
         color: Color(0xFFFBFBFD),
         borderRadius: BorderRadius.only(
@@ -48,47 +47,47 @@ class AppBottomNavigationBar extends StatelessWidget {
                 _buildNavItem(
                   index: 0,
                   icon: AppIcons.home,
-                  selectedIcon: AppIcons.home,
+                  selectedIcon: AppIcons.homeFilled,
                   label: '홈',
                   gap: 4,
-                  iconWidth: 22.5,
-                  iconHeight: 22.5,
+                  // iconWidth: 22.5,
+                  // iconHeight: 22.5,
                 ),
                 _buildNavItem(
                   index: 1,
                   icon: AppIcons.heart,
-                  selectedIcon: AppIcons.heart,
+                  selectedIcon: AppIcons.heartFilled,
                   label: '소식',
                   gap: 3,
-                  iconWidth: 25,
-                  iconHeight: 23,
+                  // iconWidth: 25,
+                  // iconHeight: 23,
                 ),
                 _buildNavItem(
                   index: 2,
                   icon: AppIcons.add,
-                  selectedIcon: AppIcons.add,
+                  selectedIcon: AppIcons.addFilled,
                   label: '분석',
                   gap: 5,
-                  iconWidth: 21,
-                  iconHeight: 21.19,
+                  // iconWidth: 21,
+                  // iconHeight: 21.19,
                 ),
                 _buildNavItem(
                   index: 3,
                   icon: AppIcons.chatDots,
-                  selectedIcon: AppIcons.chatDots,
+                  selectedIcon: AppIcons.chatDotsFilled,
                   label: '게시판',
                   gap: 6,
-                  iconWidth: 24,
-                  iconHeight: 22,
+                  // iconWidth: 24,
+                  // iconHeight: 22,
                 ),
                 _buildNavItem(
                   index: 4,
                   icon: AppIcons.user,
-                  selectedIcon: AppIcons.user,
+                  selectedIcon: AppIcons.userFilled,
                   label: '프로필',
                   gap: 6,
-                  iconWidth: 23,
-                  iconHeight: 22,
+                  // iconWidth: 22,
+                  // iconHeight: 22,
                 ),
               ],
             ),
@@ -105,8 +104,8 @@ class AppBottomNavigationBar extends StatelessWidget {
     required String selectedIcon,
     required String label,
     required double gap,
-    required double iconWidth,
-    required double iconHeight,
+    // required double iconWidth,
+    // required double iconHeight,
   }) {
     final bool isSelected = currentIndex == index;
 
@@ -123,8 +122,8 @@ class AppBottomNavigationBar extends StatelessWidget {
             SvgPicture.asset(
               activeIcon,
               colorFilter: ColorFilter.mode(contentColor, BlendMode.srcIn),
-              width: iconWidth,
-              height: iconHeight,
+              // width: iconWidth,
+              // height: iconHeight,
             ),
             SizedBox(height: gap),
             Text(
