@@ -3,6 +3,7 @@ import '../core/design_system/app_colors.dart';
 import '../core/design_system/app_dimensions.dart';
 import '../core/design_system/app_text_styles.dart';
 import '../core/design_system/widgets/app_header.dart';
+import '../screens/analysis_register.dart';
 
 // 데이터 모델
 class AnnouncementItem {
@@ -159,9 +160,17 @@ class _AnalysisListScreenState extends State<AnalysisListScreen> {
         ],
       ),
 
-      // TODO: FAB 탭 시 공고 추가 화면으로 이동 연결 필요 (추후 구현)
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => AnalysisRegisterScreen(
+                onBack: () => Navigator.of(context).pop(),
+                // TODO: onConfirmResult 연결 시 분석 결과 화면으로 이동 구현 필요
+              ),
+            ),
+          );
+        },
         backgroundColor: AppColors.primary,
         shape: const CircleBorder(),
         child: const Icon(Icons.add, color: Colors.white, size: 28),
