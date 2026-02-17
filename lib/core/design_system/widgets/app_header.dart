@@ -1,6 +1,7 @@
 // lib/core/design_system/widgets/app_header.dart
 import 'package:flutter/material.dart';
-import '../app_colors.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import '../app_icons.dart';
 import '../app_dimensions.dart';
 import '../app_text_styles.dart';
 
@@ -24,7 +25,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
       color: Colors.white,
       child: SafeArea(
         child: Container(
-          height: AppDimensions.topBarHeight, // 64px
+          height: AppDimensions.topBarHeight,
           padding: const EdgeInsets.symmetric(horizontal: AppDimensions.screenPadding),
           child: Stack(
             alignment: Alignment.center,
@@ -37,15 +38,13 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
               if (showBackButton)
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: IconButton(
-                    // TODO: 아이콘 - AppIcons.back (ic_back.svg) 사용으로 변경
-                    icon: const Icon(
-                      Icons.chevron_left,
-                      size: 28,
-                      color: AppColors.gray900,
+                  child: GestureDetector(
+                    onTap: onBack,
+                    child: SvgPicture.asset(
+                      AppIcons.back,
+                      width: 32,
+                      height: 32,
                     ),
-                    padding: EdgeInsets.zero,
-                    onPressed: onBack,
                   ),
                 ),
 
