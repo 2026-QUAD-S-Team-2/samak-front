@@ -94,7 +94,7 @@ class _AnalysisRegisterScreenState
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ── 이미지 섹션 ──
-              const _SectionLabel(label: '이미지'),
+              const _SectionLabel(label: '이미지', isRequired: true),
               const SizedBox(height: 4),
               Text(
                 'ex) 채팅 내용, 공고 내용 캡쳐본',
@@ -128,7 +128,7 @@ class _AnalysisRegisterScreenState
               const SizedBox(height: 20),
 
               // ── 회사 ──
-              const _SectionLabel(label: '회사'),
+              const _SectionLabel(label: '회사', isRequired: true),
               const SizedBox(height: 8),
               _OutlinedTextField(
                 controller: _companyController,
@@ -138,7 +138,7 @@ class _AnalysisRegisterScreenState
               const SizedBox(height: 20),
 
               // ── 국가/지역 드롭다운 ──
-              const _SectionLabel(label: '국가/지역'),
+              const _SectionLabel(label: '국가/지역', isRequired: true),
               const SizedBox(height: 8),
               _OutlinedDropdown(
                 value: _selectedCountry,
@@ -150,7 +150,7 @@ class _AnalysisRegisterScreenState
               const SizedBox(height: 20),
 
               // ── 채널 드롭다운 ──
-              const _SectionLabel(label: '채널'),
+              const _SectionLabel(label: '채널', isRequired: true),
               const SizedBox(height: 8),
               _OutlinedDropdown(
                 value: _selectedChannel,
@@ -207,13 +207,25 @@ class _AnalysisRegisterScreenState
 // ── 섹션 레이블 ──
 class _SectionLabel extends StatelessWidget {
   final String label;
-  const _SectionLabel({required this.label});
+  final bool isRequired;
+
+  const _SectionLabel({
+    required this.label,
+    this.isRequired = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      label,
-      style: AppTypography.middleBold15,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(label, style: AppTypography.middleBold15),
+        if (isRequired)
+          Text(
+            ' *',
+            style: AppTypography.middleBold15.copyWith(color: AppColors.error),
+          ),
+      ],
     );
   }
 }
