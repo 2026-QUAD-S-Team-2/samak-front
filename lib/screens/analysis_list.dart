@@ -34,7 +34,7 @@ const List<AnnouncementItem> _sampleItems = [
 const int _trustHighlightThreshold = 70;
 
 // 정렬 모드
-enum SortMode { trust, date }
+enum SortMode { trustHigh, trustLow, date }
 
 // 분석 전체 리스트 화면
 class AnalysisListScreen extends StatefulWidget {
@@ -62,8 +62,10 @@ class _AnalysisListScreenState extends State<AnalysisListScreen> {
       return item.companyName.contains(_searchQuery);
     }).toList();
 
-    if (_sortMode == SortMode.trust) {
+    if (_sortMode == SortMode.trustHigh) {
       result.sort((a, b) => b.trustScore.compareTo(a.trustScore));
+    } else if (_sortMode == SortMode.trustLow) {
+      result.sort((a, b) => a.trustScore.compareTo(b.trustScore));
     } else {
       result.sort((a, b) => b.examDate.compareTo(a.examDate));
     }
@@ -110,16 +112,27 @@ class _AnalysisListScreenState extends State<AnalysisListScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                // [MODIFIED] 신뢰도 칩 — 높은순 → 낮은순 → 취소 순환
                 _SortChip(
-                  labelDefault: '신뢰도 순',
-                  labelSelected: '신뢰도 높은 순',
-                  isSelected: _sortMode == SortMode.trust,
-                  onTap: () => setState(() => _sortMode = SortMode.trust),
+                  label: _sortMode == SortMode.trustHigh
+                      ? '신뢰도 높은 순'
+                      : _sortMode == SortMode.trustLow
+                      ? '신뢰도 낮은 순'
+                      : '신뢰도 순',
+                  isSelected: _sortMode == SortMode.trustHigh || _sortMode == SortMode.trustLow,
+                  onTap: () => setState(() {
+                    if (_sortMode == SortMode.trustHigh) {
+                      _sortMode = SortMode.trustLow;
+                    } else if (_sortMode == SortMode.trustLow) {
+                      _sortMode = SortMode.date;
+                    } else {
+                      _sortMode = SortMode.trustHigh;
+                    }
+                  }),
                 ),
                 const SizedBox(width: 8),
                 _SortChip(
-                  labelDefault: '날짜 순',
-                  labelSelected: '날짜 순',
+                  label: '날짜 순',
                   isSelected: _sortMode == SortMode.date,
                   onTap: () => setState(() => _sortMode = SortMode.date),
                 ),
@@ -190,14 +203,12 @@ class _SearchBar extends StatelessWidget {
 
 // 정렬 칩 위젯
 class _SortChip extends StatelessWidget {
-  final String labelDefault;
-  final String labelSelected;
+  final String label;
   final bool isSelected;
   final VoidCallback onTap;
 
   const _SortChip({
-    required this.labelDefault,
-    required this.labelSelected,
+    required this.label,
     required this.isSelected,
     required this.onTap,
   });
@@ -217,7 +228,7 @@ class _SortChip extends StatelessWidget {
           ),
         ),
         child: Text(
-          isSelected ? labelSelected : labelDefault,
+          label,
           style: AppTypography.small12.copyWith(
             color: isSelected ? AppColors.primary : AppColors.gray500,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
