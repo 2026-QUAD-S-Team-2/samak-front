@@ -186,7 +186,7 @@ class _AnalysisRegisterScreenState
               ),
               child: Text(
                 '공고 등록하기',
-                style: AppTypography.largeBold16.copyWith(color: Colors.white),
+                style: AppTypography.large16.copyWith(color: Colors.white),
               ),
             ),
           ),
@@ -368,7 +368,7 @@ class _CompletionBottomSheet extends StatelessWidget {
           Text(
             '사막이 분석한 공고의 신뢰도를 지금 확인해보세요.',
             style: AppTypography.middle14.copyWith(
-              color: AppColors.gray500,
+              color: AppColors.textSecondary,
               letterSpacing: -0.3,
             ),
           ),
@@ -388,7 +388,7 @@ class _CompletionBottomSheet extends StatelessWidget {
               ),
               child: Text(
                 '분석 결과 확인하기',
-                style: AppTypography.largeBold16.copyWith(color: Colors.white),
+                style: AppTypography.large16.copyWith(color: Colors.white),
               ),
             ),
           ),
