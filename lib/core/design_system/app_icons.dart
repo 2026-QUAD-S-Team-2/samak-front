@@ -5,6 +5,7 @@ class AppIcons {
 
   static const String add = '$_basePath/ic_add.svg';
   static const String addFilled = '$_basePath/ic_add_filled.svg';
+  static const String arrowDown = '$_basePath/ic_arrow-down.svg';
   static const String back = '$_basePath/ic_back.svg';
   static const String banner = '$_basePath/ic_banner.png';
   static const String bell = '$_basePath/ic_bell.svg';

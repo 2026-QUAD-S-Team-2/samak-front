@@ -59,6 +59,16 @@ class AppTypography {
     color: AppColors.gray900,
   );
 
+  // 4-1. Middle text Bold 15pt
+  static const TextStyle middleBold15 = TextStyle(
+    fontFamily: _fontFamily,
+    fontSize: 15,
+    fontWeight: FontWeight.w500,
+    height: 1.3,
+    color: AppColors.gray900,
+    letterSpacing: -0.5,
+  );
+
   // 5. Small text 12pt
   static const TextStyle small12 = TextStyle(
     fontFamily: _fontFamily,

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../core/design_system/app_colors.dart';
 import '../core/design_system/app_dimensions.dart';
 import '../core/design_system/app_text_styles.dart';
 import '../core/design_system/widgets/app_header.dart';
+import '../core/design_system/app_icons.dart';
 
 class AnalysisRegisterScreen extends StatefulWidget {
   final VoidCallback? onBack;
@@ -49,7 +51,7 @@ class _AnalysisRegisterScreenState
       context: context,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       isDismissible: false,
       enableDrag: false,
@@ -89,7 +91,7 @@ class _AnalysisRegisterScreenState
               Text(
                 'ex) 채팅 내용, 공고 내용 캡쳐본',
                 style: AppTypography.small12.copyWith(
-                  color: AppColors.purple500,
+                  color: AppColors.gray500,
                 ),
               ),
               const SizedBox(height: 12),
@@ -122,7 +124,7 @@ class _AnalysisRegisterScreenState
               const SizedBox(height: 8),
               _OutlinedTextField(
                 controller: _companyController,
-                hintText: '회사 이름을 입력해주세요.',
+                hintText: '회사 이름을 입력해 주세요',
               ),
 
               const SizedBox(height: 20),
@@ -132,7 +134,7 @@ class _AnalysisRegisterScreenState
               const SizedBox(height: 8),
               _OutlinedDropdown(
                 value: _selectedCountry,
-                hintText: '국가를 선택해주세요',
+                hintText: '국가를 선택해 주세요',
                 items: _countries,
                 onChanged: (v) => setState(() => _selectedCountry = v),
               ),
@@ -144,7 +146,7 @@ class _AnalysisRegisterScreenState
               const SizedBox(height: 8),
               _OutlinedDropdown(
                 value: _selectedChannel,
-                hintText: '채널을 선택해주세요',
+                hintText: '채널을 선택해 주세요',
                 items: _channels,
                 onChanged: (v) => setState(() => _selectedChannel = v),
               ),
@@ -169,22 +171,16 @@ class _AnalysisRegisterScreenState
       // ── 하단 등록 버튼 ──
       bottomNavigationBar: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppDimensions.screenPadding,
-            8,
-            AppDimensions.screenPadding,
-            16,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: AppDimensions.screenPadding, vertical: 16),
           child: SizedBox(
             width: double.infinity,
             height: 52,
             child: ElevatedButton(
-              // 버튼 탭 시 완료 바텀 시트 표시
               onPressed: _showCompletionBottomSheet,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(100),
                 ),
                 elevation: 0,
               ),
@@ -209,7 +205,7 @@ class _SectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       label,
-      style: AppTypography.largeBold16.copyWith(letterSpacing: -0.3),
+      style: AppTypography.middleBold15,
     );
   }
 }
@@ -234,7 +230,7 @@ class _ImageSlot extends StatelessWidget {
         ),
         child: const Center(
           child: Icon(
-            Icons.add_photo_alternate_outlined, // TODO: SVG 아이콘으로 교체
+            Icons.add_photo_alternate_outlined,
             color: AppColors.gray500,
             size: 28,
           ),
@@ -258,25 +254,40 @@ class _OutlinedTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      maxLines: maxLines,
-      style: AppTypography.middle14,
-      decoration: InputDecoration(
-        hintText: hintText,
-        hintStyle: AppTypography.middle14.copyWith(color: AppColors.gray500),
-        contentPadding:
-        const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: AppColors.gray300, width: 1),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.gray100,
+            offset: const Offset(0, 2),
+            blurRadius: 4,
+            spreadRadius: 0,
+          )
+        ]
+      ),
+      child: TextField(
+        // TODO: 그림자 추가
+        controller: controller,
+        maxLines: maxLines,
+        style: AppTypography.middle14,
+        decoration: InputDecoration(
+          hintText: hintText,
+          hintStyle: AppTypography.middle14.copyWith(color: AppColors.gray500),
+          contentPadding:
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(color: AppColors.gray300, width: 1),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(color: AppColors.gray900, width: 1.5),
+          ),
+          filled: true,
+          fillColor: Colors.white,
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-        ),
-        filled: true,
-        fillColor: Colors.white,
       ),
     );
   }
@@ -304,7 +315,12 @@ class _OutlinedDropdown extends StatelessWidget {
         hintText,
         style: AppTypography.middle14.copyWith(color: AppColors.gray500),
       ),
-      icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.gray500),
+      icon: SvgPicture.asset(
+        AppIcons.arrowDown,
+        width: 20,
+        height: 20,
+        colorFilter: ColorFilter.mode(AppColors.gray500, BlendMode.srcIn),
+      ),
       style: AppTypography.middle14.copyWith(color: AppColors.gray900),
       decoration: InputDecoration(
         contentPadding:
@@ -315,7 +331,7 @@ class _OutlinedDropdown extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.gray900, width: 1.5),
         ),
         filled: true,
         fillColor: Colors.white,
@@ -337,7 +353,7 @@ class _CompletionBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 32, 24, 40),
+      padding: const EdgeInsets.fromLTRB(24, 32, 24, 70),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -356,7 +372,7 @@ class _CompletionBottomSheet extends StatelessWidget {
               letterSpacing: -0.3,
             ),
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
             height: 52,
@@ -366,7 +382,7 @@ class _CompletionBottomSheet extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(100),
                 ),
                 elevation: 0,
               ),
