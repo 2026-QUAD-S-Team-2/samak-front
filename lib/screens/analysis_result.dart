@@ -6,9 +6,7 @@ import '../core/design_system/app_text_styles.dart';
 import '../core/design_system/widgets/app_header.dart';
 import '../core/design_system/app_icons.dart';
 
-// ─────────────────────────────────────────────
 // 분석 결과 데이터 모델
-// ─────────────────────────────────────────────
 enum TrustLevel { good, bad, normal }
 
 class AnalysisResultData {
@@ -97,7 +95,7 @@ class AnalysisResultScreen extends StatelessWidget {
               content: data.reportHistory,
             ),
 
-            AppDimensions.verticalGap24,
+            SizedBox(height: AppDimensions.navigatorBarHeight),
           ],
         ),
       ),
@@ -106,13 +104,20 @@ class AnalysisResultScreen extends StatelessWidget {
 }
 
 // AI 신뢰도 카드
-class _TrustScoreCard extends StatelessWidget {
+class _TrustScoreCard extends StatefulWidget {
   final AnalysisResultData data;
 
   const _TrustScoreCard({required this.data});
 
+  @override
+  State<_TrustScoreCard> createState() => _TrustScoreCardState();
+}
+
+class _TrustScoreCardState extends State<_TrustScoreCard> {
+  bool _showTooltip = false;
+
   Color get _levelColor {
-    switch (data.trustLevel) {
+    switch (widget.data.trustLevel) {
       case TrustLevel.good:
         return AppColors.success;
       case TrustLevel.bad:
@@ -123,7 +128,7 @@ class _TrustScoreCard extends StatelessWidget {
   }
 
   String get _levelLabel {
-    switch (data.trustLevel) {
+    switch (widget.data.trustLevel) {
       case TrustLevel.good:
         return 'Good';
       case TrustLevel.bad:
@@ -133,11 +138,9 @@ class _TrustScoreCard extends StatelessWidget {
     }
   }
 
-  // 점수에 따른 이모지 결정
-  // TODO: svg 이모지로 변경
   String get _scoreEmoji {
-    if (data.trustScore >= 70) return '😊';
-    if (data.trustScore >= 40) return '😐';
+    if (widget.data.trustScore >= 70) return '😊';
+    if (widget.data.trustScore >= 40) return '😐';
     return '😟';
   }
 
@@ -153,68 +156,82 @@ class _TrustScoreCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── 헤더 행: AI 신뢰도 + 레벨 뱃지 + 물음표 아이콘 + 안내 텍스트 ──
+          // ── 헤더 행: AI 신뢰도 + 레벨 뱃지 + 물음표 아이콘 + [툴팁] ──
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 왼쪽: 제목 + 뱃지 + 아이콘
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    'AI 신뢰도',
-                    style: AppTypography.largeBold16.copyWith(letterSpacing: -0.5),
+              Padding(
+                padding: const EdgeInsets.only(top: 2.0),
+                child: Text(
+                  'AI 신뢰도',
+                  style: AppTypography.largeBold16.copyWith(letterSpacing: -0.5),
+                ),
+              ),
+              const SizedBox(width: 8),
+
+              Padding(
+                padding: const EdgeInsets.only(top: 2.0),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: _levelColor,
+                    borderRadius: BorderRadius.circular(100),
                   ),
-                  const SizedBox(width: 8),
-
-                  // 신뢰도 레벨 뱃지 (Good / Normal / Bad)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: _levelColor,
-                      borderRadius: BorderRadius.circular(100),
-                    ),
-                    child: Text(
-                      _levelLabel,
-                      style: AppTypography.smallBold12.copyWith(
-                        color: Colors.white,
-                        letterSpacing: -0.3,
-                      ),
+                  child: Text(
+                    _levelLabel,
+                    style: AppTypography.smallBold12.copyWith(
+                      color: Colors.white,
+                      letterSpacing: -0.3,
                     ),
                   ),
+                ),
+              ),
 
-                  const SizedBox(width: 6),
+              const SizedBox(width: 6),
 
-                  SvgPicture.asset(
+              GestureDetector(
+                onTap: () => setState(() => _showTooltip = !_showTooltip),
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 2.0),
+                  child: SvgPicture.asset(
                     AppIcons.questionCircle,
                     width: 20,
                     height: 20,
-                    colorFilter: ColorFilter.mode(AppColors.gray500, BlendMode.srcIn),
-                  )
-                ],
-              ),
-
-              const Spacer(),
-
-              // 오른쪽: 안내 텍스트
-              Flexible(
-                child: Text(
-                  '신뢰도는 AI가 분석한 결과를 기반으로 제공됩니다.\n보다 안전한 판단을 위해 재차 확인을 권장드립니다.',
-                  style: AppTypography.small10.copyWith(
-                    color: AppColors.gray500,
-                    height: 1.5,
+                    colorFilter: ColorFilter.mode(
+                      _showTooltip ? AppColors.gray900 : AppColors.gray500,
+                      BlendMode.srcIn,
+                    ),
                   ),
-                  textAlign: TextAlign.end,
                 ),
               ),
+
+              if (_showTooltip) ...[
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.purple050,
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    child: Text(
+                      '신뢰도는 AI가 분석한 결과를 기반으로 제공됩니다. 보다 안전한 판단을 위해 재차 확인을 권장드립니다.',
+                      style: AppTypography.small8.copyWith(
+                        color: AppColors.gray900,
+                        height: 1.0,
+                      ),
+                      softWrap: true,
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
 
           const SizedBox(height: 12),
 
-          // ── 신뢰도 퍼센트 텍스트 ──
           Text(
-            '\'${data.companyName}\'는 ${data.trustScore}% 신뢰할 수 있습니다.',
+            '\'${widget.data.companyName}\'는 ${widget.data.trustScore}% 신뢰할 수 있습니다.',
             style: AppTypography.middle14.copyWith(
               letterSpacing: -0.3,
               color: AppColors.gray900,
@@ -223,9 +240,8 @@ class _TrustScoreCard extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          // ── 신뢰도 진행 바 ──
           _TrustProgressBar(
-            score: data.trustScore,
+            score: widget.data.trustScore,
             emoji: _scoreEmoji,
             barColor: _levelColor,
           ),
@@ -235,9 +251,7 @@ class _TrustScoreCard extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────
 // 신뢰도 프로그레스 바
-// ─────────────────────────────────────────────
 class _TrustProgressBar extends StatelessWidget {
   final int score;
   final String emoji;
@@ -253,52 +267,58 @@ class _TrustProgressBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final double ratio = score.clamp(0, 100) / 100.0;
 
-    return Row(
-      children: [
-        // 이모지 아이콘
-        Text(
-          emoji,
-          style: const TextStyle(fontSize: 28),
-        ),
-
-        const SizedBox(width: 12),
-
-        // 프로그레스 바
-        Expanded(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return Stack(
-                children: [
-                  // 배경 트랙
-                  Container(
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: AppColors.gray200,
-                      borderRadius: BorderRadius.circular(100),
-                    ),
-                  ),
-                  // 채워진 부분 (점수 비율만큼 너비 채움)
-                  Container(
-                    height: 12,
-                    width: constraints.maxWidth * ratio,
-                    decoration: BoxDecoration(
-                      color: barColor,
-                      borderRadius: BorderRadius.circular(100),
-                    ),
-                  ),
-                ],
-              );
-            },
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: AppColors.gray100,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.gray200),
+      ),
+      padding: EdgeInsets.all(8),
+      child: Row(
+        children: [
+          // 이모지 아이콘
+          Text(
+            emoji,
+            style: const TextStyle(fontSize: 28),
           ),
-        ),
-      ],
+
+          const SizedBox(width: 12),
+
+          // 프로그레스 바
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return Stack(
+                  children: [
+                    // 배경 트랙
+                    Container(
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppColors.gray200,
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                    ),
+                    Container(
+                      height: 4,
+                      width: constraints.maxWidth * ratio,
+                      decoration: BoxDecoration(
+                        color: barColor,
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
 
-// ─────────────────────────────────────────────
 // 공통 정보 섹션 카드 (그래서 ~, 국가 기반 검증, 신고 이력)
-// ─────────────────────────────────────────────
 class _InfoSection extends StatelessWidget {
   final String title;
   final String content;
