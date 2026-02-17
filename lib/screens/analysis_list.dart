@@ -83,14 +83,21 @@ class _AnalysisListScreenState extends State<AnalysisListScreen> {
       body: Column(
         children: [
           // ── 검색 바 ──
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppDimensions.screenPadding,
-              vertical: 12,
+          Container(
+            margin: EdgeInsetsGeometry.symmetric(vertical: 8, horizontal: 16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
             ),
-            child: _SearchBar(
-              controller: _searchController,
-              onChanged: (v) => setState(() => _searchQuery = v),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppDimensions.screenPadding,
+                vertical: 12,
+              ),
+              child: _SearchBar(
+                controller: _searchController,
+                onChanged: (v) => setState(() => _searchQuery = v),
+              ),
             ),
           ),
 
@@ -98,7 +105,7 @@ class _AnalysisListScreenState extends State<AnalysisListScreen> {
           Padding(
             padding: const EdgeInsets.only(
               right: AppDimensions.screenPadding,
-              bottom: 12,
+              bottom: 8,
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
@@ -111,7 +118,7 @@ class _AnalysisListScreenState extends State<AnalysisListScreen> {
                 ),
                 const SizedBox(width: 8),
                 _SortChip(
-                  labelDefault: '날짜순',
+                  labelDefault: '날짜 순',
                   labelSelected: '날짜 순',
                   isSelected: _sortMode == SortMode.date,
                   onTap: () => setState(() => _sortMode = SortMode.date),
@@ -163,8 +170,7 @@ class _SearchBar extends StatelessWidget {
       height: 44,
       decoration: BoxDecoration(
         color: AppColors.gray100,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.gray200, width: 1),
+        borderRadius: BorderRadius.circular(32),
       ),
       child: TextField(
         controller: controller,
@@ -273,7 +279,7 @@ class _AnnouncementCard extends StatelessWidget {
 
           // ── 검사 날짜 / 위치 상세 박스 ──
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: AppColors.gray100,
               borderRadius: BorderRadius.circular(8),
@@ -283,7 +289,7 @@ class _AnnouncementCard extends StatelessWidget {
               children: [
                 _InfoColumn(label: '검사 날짜', value: item.examDate),
                 const Spacer(),
-                Container(width: 1, height: 32, color: AppColors.gray200),
+                Container(width: 1, height: 32),
                 const Spacer(),
                 _InfoColumn(label: '위치', value: item.location),
               ],
@@ -311,12 +317,12 @@ class _InfoColumn extends StatelessWidget {
       children: [
         Text(
           label,
-          style: AppTypography.small10.copyWith(color: AppColors.gray500),
+          style: AppTypography.small12.copyWith(color: AppColors.gray500),
         ),
         const SizedBox(height: 4),
         Text(
           value,
-          style: AppTypography.middle14.copyWith(letterSpacing: -0.3),
+          style: AppTypography.large16.copyWith(letterSpacing: -0.3),
         ),
       ],
     );
