@@ -138,10 +138,10 @@ class _TrustScoreCardState extends State<_TrustScoreCard> {
     }
   }
 
-  String get _scoreEmoji {
-    if (widget.data.trustScore >= 70) return '😊';
-    if (widget.data.trustScore >= 40) return '😐';
-    return '😟';
+  String get _scoreIconPath {
+    if (widget.data.trustScore >= 70) return AppIcons.goodFace;
+    if (widget.data.trustScore >= 40) return AppIcons.normalFace;
+    return AppIcons.badFace;
   }
 
   @override
@@ -179,8 +179,8 @@ class _TrustScoreCardState extends State<_TrustScoreCard> {
                   ),
                   child: Text(
                     _levelLabel,
-                    style: AppTypography.smallBold12.copyWith(
-                      color: Colors.white,
+                    style: AppTypography.small12.copyWith(
+                      color: Colors.black,
                       letterSpacing: -0.3,
                     ),
                   ),
@@ -215,7 +215,7 @@ class _TrustScoreCardState extends State<_TrustScoreCard> {
                       borderRadius: BorderRadius.circular(5),
                     ),
                     child: Text(
-                      '신뢰도는 AI가 분석한 결과를 기반으로 제공됩니다. 보다 안전한 판단을 위해 재차 확인을 권장드립니다.',
+                      '신뢰도는 AI가 분석한 결과를 기반으로 제공되므로 재차 확인을 권장드립니다.',
                       style: AppTypography.small8.copyWith(
                         color: AppColors.gray900,
                         height: 1.0,
@@ -242,7 +242,7 @@ class _TrustScoreCardState extends State<_TrustScoreCard> {
 
           _TrustProgressBar(
             score: widget.data.trustScore,
-            emoji: _scoreEmoji,
+            iconPath: _scoreIconPath,
             barColor: _levelColor,
           ),
         ],
@@ -254,12 +254,12 @@ class _TrustScoreCardState extends State<_TrustScoreCard> {
 // 신뢰도 프로그레스 바
 class _TrustProgressBar extends StatelessWidget {
   final int score;
-  final String emoji;
+  final String iconPath;
   final Color barColor;
 
   const _TrustProgressBar({
     required this.score,
-    required this.emoji,
+    required this.iconPath,
     required this.barColor,
   });
 
@@ -278,14 +278,15 @@ class _TrustProgressBar extends StatelessWidget {
       child: Row(
         children: [
           // 이모지 아이콘
-          Text(
-            emoji,
-            style: const TextStyle(fontSize: 28),
+          SvgPicture.asset(
+            iconPath,
+            width: 32,
+            height: 32,
           ),
 
           const SizedBox(width: 12),
 
-          // 프로그레스 바
+          // 프로그래스 바
           Expanded(
             child: LayoutBuilder(
               builder: (context, constraints) {
@@ -306,12 +307,12 @@ class _TrustProgressBar extends StatelessWidget {
                         color: barColor,
                         borderRadius: BorderRadius.circular(100),
                       ),
-                    ),
+                    )
                   ],
                 );
-              },
-            ),
-          ),
+              }
+            )
+          )
         ],
       ),
     );
