@@ -3,6 +3,8 @@ import '../core/design_system/app_colors.dart';
 import '../core/design_system/app_dimensions.dart';
 import '../core/design_system/app_text_styles.dart';
 import '../core/design_system/widgets/app_header.dart';
+import '../screens/analysis_register.dart';
+import '../screens/analysis_result.dart';
 
 // 데이터 모델
 class AnnouncementItem {
@@ -159,9 +161,17 @@ class _AnalysisListScreenState extends State<AnalysisListScreen> {
         ],
       ),
 
-      // TODO: FAB 탭 시 공고 추가 화면으로 이동 연결 필요 (추후 구현)
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => AnalysisRegisterScreen(
+                onBack: () => Navigator.of(context).pop(),
+                // TODO: onConfirmResult 연결 시 분석 결과 화면으로 이동 구현 필요
+              ),
+            ),
+          );
+        },
         backgroundColor: AppColors.primary,
         shape: const CircleBorder(),
         child: const Icon(Icons.add, color: Colors.white, size: 28),
@@ -249,66 +259,90 @@ class _AnnouncementCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── 회사명 + 신뢰도 ──
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                item.companyName,
-                style: AppTypography.largeBold16.copyWith(letterSpacing: -0.5),
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => AnalysisResultScreen(
+              onBack: () => Navigator.of(context).pop(),
+              // TODO: AnnouncementItem → AnalysisResultData 변환 로직 연결 필요 (서버 데이터 연동 시)
+              resultData: AnalysisResultData(
+                companyName: item.companyName,
+                trustScore: item.trustScore,
+                trustLevel: item.trustScore >= 70
+                    ? TrustLevel.good
+                    : item.trustScore >= 40
+                    ? TrustLevel.normal
+                    : TrustLevel.bad,
+                companySummary: '분석 데이터를 불러오는 중입니다.',       // TODO: 서버 데이터로 교체
+                countryVerification: '분석 데이터를 불러오는 중입니다.', // TODO: 서버 데이터로 교체
+                reportHistory: '분석 데이터를 불러오는 중입니다.',
               ),
-              const Spacer(),
-              if (_isHighTrust) ...[
-                const Icon(Icons.check_circle, color: AppColors.info, size: 16),
-                const SizedBox(width: 4),
-                Text(
-                  '신뢰도 ${item.trustScore}%',
-                  style: AppTypography.small12.copyWith(
-                    color: AppColors.info,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ] else ...[
-                Text(
-                  '신뢰도 ${item.trustScore}%',
-                  style: AppTypography.small12.copyWith(color: AppColors.gray500),
-                ),
-              ],
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          // ── 검사 날짜 / 위치 상세 박스 ──
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColors.gray100,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.gray200, width: 1),
-            ),
-            child: Row(
+            )
+          )
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── 회사명 + 신뢰도 ──
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                _InfoColumn(label: '검사 날짜', value: item.examDate),
+                Text(
+                  item.companyName,
+                  style: AppTypography.largeBold16.copyWith(letterSpacing: -0.5),
+                ),
                 const Spacer(),
-                Container(width: 1, height: 32),
-                const Spacer(),
-                _InfoColumn(label: '위치', value: item.location),
+                if (_isHighTrust) ...[
+                  const Icon(Icons.check_circle, color: AppColors.info, size: 16),
+                  const SizedBox(width: 4),
+                  Text(
+                    '신뢰도 ${item.trustScore}%',
+                    style: AppTypography.small12.copyWith(
+                      color: AppColors.info,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ] else ...[
+                  Text(
+                    '신뢰도 ${item.trustScore}%',
+                    style: AppTypography.small12.copyWith(color: AppColors.gray500),
+                  ),
+                ],
               ],
             ),
-          ),
 
-          const SizedBox(height: 16),
-        ],
+            const SizedBox(height: 12),
+
+            // ── 검사 날짜 / 위치 상세 박스 ──
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.gray100,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.gray200, width: 1),
+              ),
+              child: Row(
+                children: [
+                  _InfoColumn(label: '검사 날짜', value: item.examDate),
+                  const Spacer(),
+                  Container(width: 1, height: 32),
+                  const Spacer(),
+                  _InfoColumn(label: '위치', value: item.location),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+          ],
+        ),
       ),
     );
   }
