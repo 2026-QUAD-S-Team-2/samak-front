@@ -18,6 +18,8 @@ class AppColors {
   static const Color warning = Color(0xFFFFAF36);
 
   // --- Background Colors (추가 예정) ---
+  static const Color background = Color(0xFFF4F6F9);
+  static const Color surfacePrimary = Color(0xFFFEFEFE);
 
   // --- Text Colors ---
   static const Color gray900 = Color(0xFF222222);
@@ -25,4 +27,8 @@ class AppColors {
   static const Color gray300 = Color(0xFFDDDDDD);
   static const Color gray200 = Color(0xFFEEEEEE);
   static const Color gray100 = Color(0xFFFBFBFD);
+  static const Color textSecondary = Color(0xFF475467);
+  static const Color purple100 = Color(0xFFEBE9FE);
+  static const Color purple500 = Color(0xFF7A5AF8);
+  static const Color purple600 = Color(0xFF6938EF);
 }

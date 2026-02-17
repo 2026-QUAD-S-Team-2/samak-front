@@ -17,7 +17,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.gray100,
+      color: Colors.white,
       child: SafeArea( // Status Bar (52px) 영역 확보
         child: Container(
           height: AppDimensions.topBarHeight, // 64px

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'core/design_system/widgets/app_header.dart';
 import 'core/design_system/widgets/app_navigationbar.dart';
 import 'core/design_system/app_text_styles.dart';
+import 'core/design_system/app_colors.dart';
+import 'screens/home.dart';
 
 void main() {
   runApp(const SamakFEApp());
@@ -32,13 +34,28 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
+  final List<Widget> _screens = [
+    const HomeScreen(),
+    _PlaceholderScreen(title: '소식'),
+    _PlaceholderScreen(title: '분석'),
+    _PlaceholderScreen(title: '게시판'),
+    _PlaceholderScreen(title: '프로필'),
+  ];
+
+  final List<String> _titles = [
+    ' ',
+    '소식',
+    '분석',
+    '게시판',
+    '프로필',
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const AppHeader(title: "홈 화면"),
-      body: Center(child: Text("콘텐츠 영역", style: AppTypography.large20)),
+      appBar: _selectedIndex == 0 ? null : AppHeader(title: _titles[_selectedIndex]),
+      body: _screens[_selectedIndex],
 
-      // 우리가 만든 커스텀 네비게이션 바
       bottomNavigationBar: AppBottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) {
@@ -46,6 +63,45 @@ class _MainScreenState extends State<MainScreen> {
             _selectedIndex = index;
           });
         },
+      ),
+    );
+  }
+}
+
+class _PlaceholderScreen extends StatelessWidget {
+  final String title;
+
+  const _PlaceholderScreen({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: AppColors.gray100,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.construction,
+              size: 64,
+              color: AppColors.gray300,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              '$title 화면',
+              style: AppTypography.large20.copyWith(
+                color: AppColors.gray500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '준비 중입니다',
+              style: AppTypography.middle14.copyWith(
+                color: AppColors.gray500,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
