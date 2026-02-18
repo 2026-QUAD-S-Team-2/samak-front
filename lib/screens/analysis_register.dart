@@ -30,10 +30,14 @@ class _AnalysisRegisterScreenState
   final TextEditingController _etcController = TextEditingController();
 
   String? _selectedCountry;
+  String? _selectedCity;
   String? _selectedChannel;
 
   // TODO: 국가/지역 목록 (추후 서버 데이터로 교체 필요)
   final List<String> _countries = ['한국', '중국', '미국', '일본', '기타'];
+
+  // TODO: 지역 목록 (추후 서버 데이터로 교체 필요)
+  final List<String> _cities = ['서울특별시', '부산광역시', '인천광역시', '대구광역시'];
 
   // TODO: 채널 목록 (추후 서버 데이터로 교체 필요)
   final List<String> _channels = ['원티드', '사람인', '잡코리아', '링크드인', '기타'];
@@ -137,14 +141,26 @@ class _AnalysisRegisterScreenState
 
               const SizedBox(height: 20),
 
-              // ── 국가/지역 드롭다운 ──
-              const _SectionLabel(label: '국가/지역', isRequired: true),
+              // ── 국가 드롭다운 ──
+              const _SectionLabel(label: '국가', isRequired: true),
               const SizedBox(height: 8),
               _OutlinedDropdown(
                 value: _selectedCountry,
                 hintText: '국가를 선택해 주세요',
                 items: _countries,
                 onChanged: (v) => setState(() => _selectedCountry = v),
+              ),
+
+              const SizedBox(height: 20),
+
+              // ── 지역 드롭다운 ──
+              const _SectionLabel(label: '지역', isRequired: true),
+              const SizedBox(height: 8),
+              _OutlinedDropdown(
+                value: _selectedCity,
+                hintText: '지역을 선택해 주세요',
+                items: _cities,
+                onChanged: (v) => setState(() => _selectedCity = v),
               ),
 
               const SizedBox(height: 20),
