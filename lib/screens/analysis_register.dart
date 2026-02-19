@@ -27,6 +27,7 @@ class _AnalysisRegisterScreenState
     extends State<AnalysisRegisterScreen> {
   final TextEditingController _linkController = TextEditingController();
   final TextEditingController _companyController = TextEditingController();
+  final TextEditingController _salaryController = TextEditingController();
   final TextEditingController _etcController = TextEditingController();
 
   String? _selectedCountry;
@@ -46,6 +47,7 @@ class _AnalysisRegisterScreenState
   void dispose() {
     _linkController.dispose();
     _companyController.dispose();
+    _salaryController.dispose();
     _etcController.dispose();
     super.dispose();
   }
@@ -137,6 +139,16 @@ class _AnalysisRegisterScreenState
               _OutlinedTextField(
                 controller: _companyController,
                 hintText: '회사 이름을 입력해 주세요',
+              ),
+
+              const SizedBox(height: 20),
+
+              // ── 제안 임금 ──
+              const _SectionLabel(label: '제안 임금', isRequired: true),
+              const SizedBox(height: 8),
+              _OutlinedTextField(
+                  controller: _salaryController,
+                  hintText: '제안 받은 임금을 입력해 주세요'
               ),
 
               const SizedBox(height: 20),
