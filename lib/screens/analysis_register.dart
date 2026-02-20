@@ -144,16 +144,18 @@ class _AnalysisRegisterScreenState
               const SizedBox(height: 20),
 
               // ── 제안 임금 ──
-              const _SectionLabel(label: '제안 임금', isRequired: true),
+              const _SectionLabel(label: '제안 임금', isRequired: false),
               const SizedBox(height: 8),
               _OutlinedTextField(
-                  controller: _salaryController,
-                  hintText: '제안 받은 임금을 입력해 주세요'
+                controller: _salaryController,
+                hintText: '시급 기준으로 통화와 함께 입력해 주세요',
+                helperText: '예: KRW 12000/h, USD 25/h',
               ),
 
               const SizedBox(height: 20),
 
               // ── 국가 드롭다운 ──
+              // TODO: 국가 이름과 국가 코드 (ISO 3166-1 alpha-2)와 매칭하여 백엔드로 보내기
               const _SectionLabel(label: '국가', isRequired: true),
               const SizedBox(height: 8),
               _OutlinedDropdown(
@@ -292,11 +294,13 @@ class _ImageSlot extends StatelessWidget {
 class _OutlinedTextField extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
+  final String? helperText;
   final int maxLines;
 
   const _OutlinedTextField({
     required this.controller,
     required this.hintText,
+    this.helperText,
     this.maxLines = 1,
   });
 
@@ -323,6 +327,8 @@ class _OutlinedTextField extends StatelessWidget {
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: AppTypography.middle14.copyWith(color: AppColors.gray500),
+          helperText: helperText,
+          helperStyle: AppTypography.small12.copyWith(color: AppColors.gray500),
           contentPadding:
           const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           enabledBorder: OutlineInputBorder(
