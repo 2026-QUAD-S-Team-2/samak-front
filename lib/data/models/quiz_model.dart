@@ -23,7 +23,7 @@ class TodayQuizModel {
       answer:      json['answer']      as bool,
       explanation: json['explanation'] as String,
       isSolved:    json['isSolved']    as bool,
-      isCorrect:   json['isCorrect']   as bool,
+      isCorrect:   (json['isCorrect']  as bool?) ?? false,
     );
   }
 }

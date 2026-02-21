@@ -22,6 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // 멤버/퀴즈 데이터 상태
   MemberModel? _member;
   TodayQuizModel? _quiz;
+  String? _homeError;
 
   @override
   void initState() {
@@ -41,11 +42,15 @@ class _HomeScreenState extends State<HomeScreen> {
         _quiz   = results[1] as TodayQuizModel;
       });
     } on ApiException catch (e) {
+      setState(() => _homeError = e.message);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.message)),
         );
       }
+    } catch (e) {
+      // ApiException 외 예외도 확인
+      setState(() => _homeError = e.toString());
     }
   }
 
@@ -60,7 +65,15 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: statusBarHeight + AppDimensions.bottomSafeArea),
-            _ProfileSection(member: _member),   // member 전달
+            _ProfileSection(member: _member), // member 전달
+            if (_homeError != null)
+              Padding(
+                padding: AppDimensions.screenEdgePadding,
+                child: Text(
+                  _homeError!,
+                  style: AppTypography.small12.copyWith(color: AppColors.error),
+                ),
+              ),
             AppDimensions.verticalGap16,
             Padding(
               padding: AppDimensions.screenEdgePadding,
@@ -69,7 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
             AppDimensions.verticalGap24,
             _AnnouncementSection(),
             AppDimensions.verticalGap24,
-            _QuizSection(quiz: _quiz),           // quiz 전달
+            _QuizSection(quiz: _quiz),  // quiz 전달
             AppDimensions.verticalGap24,
           ],
         ),
