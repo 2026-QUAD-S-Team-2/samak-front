@@ -4,12 +4,15 @@ import '../core/design_system/app_colors.dart';
 import '../core/design_system/app_dimensions.dart';
 import '../core/design_system/app_text_styles.dart';
 import '../core/design_system/app_icons.dart';
+import 'package:url_launcher/url_launcher.dart';
 // API 연동
 import '../data/repositories/member_repository.dart';
 import '../data/repositories/quiz_repository.dart';
 import '../data/models/member_model.dart';
 import '../data/models/quiz_model.dart';
 import '../core/network/api_exception.dart';
+import '../data/repositories/news_repository.dart';
+import '../data/models/news_model.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,6 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // 멤버/퀴즈 데이터 상태
   MemberModel? _member;
   TodayQuizModel? _quiz;
+  List<NewsModel> _newsList = [];
   // String? _homeError;
 
   @override
@@ -36,12 +40,15 @@ class _HomeScreenState extends State<HomeScreen> {
       final results = await Future.wait([
         MemberRepository.instance.getMe(),
         QuizRepository.instance.getTodayQuiz(),
+        NewsRepository.instance.getBannerNews(),
       ]);
-      debugPrint('member raw: ${results[0]}');
+      // debugPrint('member raw: ${results[0]}');
       setState(() {
         _member = results[0] as MemberModel;
         _quiz   = results[1] as TodayQuizModel;
+        _newsList = results[2] as List<NewsModel>;
       });
+      // debugPrint('newsList: ${_newsList.map((e) => e.title).toList()}');
     } on ApiException catch (e) {
       // setState(() => _homeError = e.message);
       if (mounted) {
@@ -83,7 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
             AppDimensions.verticalGap16,
             Padding(
               padding: AppDimensions.screenEdgePadding,
-              child: _BannerCard(),
+              child: _BannerCard(newsList: _newsList,),
             ),
             AppDimensions.verticalGap24,
             _AnnouncementSection(),
@@ -160,53 +167,185 @@ class _ProfileSection extends StatelessWidget {
   }
 }
 
-class _BannerCard extends StatelessWidget {
+class _BannerCard extends StatefulWidget {
+  final List<NewsModel> newsList; // [ADDED]
+
+  const _BannerCard({required this.newsList});
+
+  @override
+  State<_BannerCard> createState() => _BannerCardState();
+  // [ADDED] 임시 디버그 로그 — 확인 후 제거
+}
+
+class _BannerCardState extends State<_BannerCard> {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _openLink(String url) async {
+    // 1. 어떤 URL이 들어왔는지 확인하는 로그
+    debugPrint('🔗 배너 터치됨! 열어볼 URL: $url');
+
+    try {
+      final uri = Uri.parse(url);
+
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        // 2. 링크 열기가 불가능할 때 출력되는 로그
+        debugPrint('🚨 링크를 열 수 없습니다. (canLaunchUrl == false) URL: $url');
+
+        // 사용자에게도 알려주기 (선택 사항)
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('링크를 열 수 없습니다. 인터넷 설정이나 주소를 확인해 주세요.')),
+          );
+        }
+      }
+    } catch (e) {
+      // 3. URL 파싱 등에서 아예 에러가 났을 때
+      debugPrint('🚨 _openLink 실행 중 에러 발생: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '취업 사기가 걱정되시나요?',
-                  style: AppTypography.large16.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.5
+    // 서버 데이터가 없으면(서버 불안정 등) 하드코딩 배너 1개 띄움
+    final bool showFallback = widget.newsList.isEmpty;
+    final int totalCount = showFallback ? 1 : widget.newsList.length;
+
+    return Column(
+      children: [
+        SizedBox(
+          height: 120,
+          child: PageView.builder(
+            controller: _pageController,
+            itemCount: totalCount,
+            onPageChanged: (index) => setState(() => _currentPage = index),
+            itemBuilder: (_, index) {
+
+              // 서버 데이터가 없어 폴백(하드코딩) 배너를 띄워야 하는 경우
+              if (showFallback) {
+                return Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 20, 0, 20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '취업 사기가 걱정되시나요?',
+                                style: AppTypography.large16.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '사막 AI 분석이 공고를 검증해 드려요',
+                                style: AppTypography.middle13.copyWith(
+                                  color: AppColors.purple100,
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      ClipRRect(
+                        borderRadius: const BorderRadius.horizontal(
+                          right: Radius.circular(12),
+                        ),
+                        child: Image(
+                          image: AssetImage(AppIcons.banner),
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              // 서버 데이터를 정상적으로 받아온 경우
+              final news = widget.newsList[index];
+
+              return GestureDetector(
+                onTap: () => _openLink(news.link),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    image: DecorationImage(
+                      image: NetworkImage(news.backgroundImageUrl),
+                      fit: BoxFit.fitHeight,
+                      alignment: Alignment.centerRight,
+                    ),
+                  ),
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        news.title,
+                        style: AppTypography.largeBold16.copyWith(
+                          color: index == 0 ? AppColors.purple100 : AppColors.gray900,
+                          letterSpacing: -0.5,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        news.summary,
+                        style: AppTypography.small12.copyWith(
+                          color: index == 0 ? AppColors.gray200 : AppColors.textSecondary,
+                          letterSpacing: -0.3,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 4,),
-                Text(
-                  '사막 AI 분석이 공고를 검증해 드려요',
-                  style: AppTypography.middle13.copyWith(
-                    color: AppColors.purple100,
-                    letterSpacing: -0.5
-                  ),
-                )
-              ],
-            )
+              );
+            },
           ),
-          Container(
-            width: 80,
-            height: 80,
-            child: Image(
-              image: AssetImage(AppIcons.banner),
-              width: 117,
-              height: 85,
-            )
-          ),
-          // 배너 일러스트
-        ],
-      )
+        ),
+
+        const SizedBox(height: 10),
+
+        // ── 페이지 인디케이터 도트 ──
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(totalCount, (index) {
+            final bool isActive = index == _currentPage;
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              margin: const EdgeInsets.symmetric(horizontal: 3),
+              width: isActive ? 16 : 6,
+              height: 6,
+              decoration: BoxDecoration(
+                color: isActive ? AppColors.primary : AppColors.gray300,
+                borderRadius: BorderRadius.circular(100),
+              ),
+            );
+          }),
+        ),
+      ],
     );
   }
 }
