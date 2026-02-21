@@ -188,28 +188,9 @@ class _BannerCardState extends State<_BannerCard> {
   }
 
   Future<void> _openLink(String url) async {
-    // 1. 어떤 URL이 들어왔는지 확인하는 로그
-    debugPrint('🔗 배너 터치됨! 열어볼 URL: $url');
-
-    try {
-      final uri = Uri.parse(url);
-
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        // 2. 링크 열기가 불가능할 때 출력되는 로그
-        debugPrint('🚨 링크를 열 수 없습니다. (canLaunchUrl == false) URL: $url');
-
-        // 사용자에게도 알려주기 (선택 사항)
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('링크를 열 수 없습니다. 인터넷 설정이나 주소를 확인해 주세요.')),
-          );
-        }
-      }
-    } catch (e) {
-      // 3. URL 파싱 등에서 아예 에러가 났을 때
-      debugPrint('🚨 _openLink 실행 중 에러 발생: $e');
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
   }
 
