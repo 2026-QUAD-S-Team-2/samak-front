@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../core/design_system/app_colors.dart';
@@ -6,6 +8,15 @@ import '../core/design_system/app_text_styles.dart';
 import '../core/design_system/widgets/app_header.dart';
 import '../core/design_system/app_icons.dart';
 import '../screens/analysis_result.dart';
+// API 연동
+import 'package:image_picker/image_picker.dart';
+import '../data/repositories/country_repository.dart';
+import '../data/repositories/analysis_repository.dart';
+import '../data/repositories/image_repository.dart';
+import '../data/models/country_model.dart';
+import '../data/models/city_model.dart';
+import '../data/models/analysis_item_create_request.dart';
+import '../core/network/api_exception.dart';
 
 class AnalysisRegisterScreen extends StatefulWidget {
   final VoidCallback? onBack;
@@ -23,25 +34,38 @@ class AnalysisRegisterScreen extends StatefulWidget {
       _AnalysisRegisterScreenState();
 }
 
-class _AnalysisRegisterScreenState
-    extends State<AnalysisRegisterScreen> {
+class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
   final TextEditingController _linkController = TextEditingController();
   final TextEditingController _companyController = TextEditingController();
   final TextEditingController _salaryController = TextEditingController();
   final TextEditingController _etcController = TextEditingController();
 
-  String? _selectedCountry;
-  String? _selectedCity;
+  // 서버 데이터 기반 목록 및 모델 선택값
+  List<CountryModel> _countries = [];
+  List<CityModel> _cities = [];
+  bool _isLoadingCountries = false;
+  bool _isLoadingCities = false;
+
+  CountryModel? _selectedCountry;
+  CityModel? _selectedCity;
   String? _selectedChannel;
 
-  // TODO: 국가/지역 목록 (추후 서버 데이터로 교체 필요)
-  final List<String> _countries = ['한국', '중국', '미국', '일본', '기타'];
+  static const Map<String, String> _channelContactTypeMap = {
+    '이메일':    'EMAIL',
+    '텔레그램':  'TELEGRAM',
+    '전화':      'PHONE',
+  };
+  final List<String> _channels = _channelContactTypeMap.keys.toList();
 
-  // TODO: 지역 목록 (추후 서버 데이터로 교체 필요)
-  final List<String> _cities = ['서울특별시', '부산광역시', '인천광역시', '대구광역시'];
+  // 이미지 관련
+  final ImagePicker _imagePicker = ImagePicker();
+  final List<XFile> _pickedImages = [];
 
-  // TODO: 채널 목록 (추후 서버 데이터로 교체 필요)
-  final List<String> _channels = ['원티드', '사람인', '잡코리아', '링크드인', '기타'];
+  @override
+  void initState() {
+    super.initState();
+    _loadCountries();
+  }
 
   @override
   void dispose() {
@@ -52,8 +76,121 @@ class _AnalysisRegisterScreenState
     super.dispose();
   }
 
-  // 등록 완료 바텀 시트
-  void _showCompletionBottomSheet() {
+  // 국가 목록 로드
+  Future<void> _loadCountries() async {
+    setState(() => _isLoadingCountries = true);
+    try {
+      final countries = await CountryRepository.instance.getCountries();
+      setState(() => _countries = countries);
+    } on ApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message)),
+        );
+      }
+    } finally {
+      setState(() => _isLoadingCountries = false);
+    }
+  }
+
+  // 국가 선택 시 도시 목록 로드
+  Future<void> _loadCities(String countryCode) async {
+    setState(() {
+      _cities = [];
+      _selectedCity = null;
+      _isLoadingCities = true;
+    });
+    try {
+      final cities = await CountryRepository.instance.getCities(countryCode);
+      setState(() => _cities = cities);
+    } on ApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message)),
+        );
+      }
+    } finally {
+      setState(() => _isLoadingCities = false);
+    }
+  }
+
+  // 이미지 추가 (최대 4장)
+  Future<void> _pickImage() async {
+    if (_pickedImages.length >= 4) return;
+    final XFile? image = await _imagePicker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+    );
+    if (image != null) {
+      setState(() => _pickedImages.add(image));
+    }
+  }
+
+// 이미지 제거
+  void _removeImage(int index) {
+    setState(() => _pickedImages.removeAt(index));
+  }
+
+// 등록 실행 — 유효성 검사 → 이미지 업로드 → 분석 아이템 등록
+  Future<void> _submit() async {
+    // 필수값 검사
+    if (_pickedImages.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('이미지를 1장 이상 첨부해 주세요.')),
+      );
+      return;
+    }
+    if (_companyController.text.trim().isEmpty ||
+        _salaryController.text.trim().isEmpty ||
+        _selectedCountry == null ||
+        _selectedCity == null ||
+        _selectedChannel == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('필수 항목을 모두 입력해 주세요.')),
+      );
+      return;
+    }
+
+    final salary = int.tryParse(_salaryController.text.trim());
+    if (salary == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('제안 임금은 숫자로 입력해 주세요.')),
+      );
+      return;
+    }
+
+    try {
+      // 이미지 업로드
+      final imageNames = await ImageRepository.instance.uploadMultiple(
+        _pickedImages.map((e) => e.path).toList(),
+      );
+
+      // 분석 아이템 등록
+      final result = await AnalysisRepository.instance.createItem(
+        AnalysisItemCreateRequest(
+          imageNames:  imageNames,
+          companyName: _companyController.text.trim(),
+          countryCode: _selectedCountry!.code,
+          cityId:      _selectedCity!.id,
+          contactType: _channelContactTypeMap[_selectedChannel]!,
+          sourceUrl:   _linkController.text.trim(),
+          notes:       _etcController.text.trim(),
+          salary:      salary,
+        ),
+      );
+
+      if (mounted) _showCompletionBottomSheet(result.id);
+    } on ApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message)),
+        );
+      }
+    }
+  }
+
+  // analysisItemId를 받아 결과 화면으로 전달
+  void _showCompletionBottomSheet(int analysisItemId) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -69,7 +206,7 @@ class _AnalysisRegisterScreenState
             MaterialPageRoute(
               builder: (_) => AnalysisResultScreen(
                 onBack: () => Navigator.of(context).pop(),
-                // TODO: 등록된 공고 데이터 → AnalysisResultData 변환 로직 연결 필요 (서버 응답 연동 시)
+                analysisItemId: analysisItemId,
               ),
             ),
           );
@@ -110,14 +247,26 @@ class _AnalysisRegisterScreenState
               ),
               const SizedBox(height: 12),
 
-              // TODO: 가로 스크롤 이미지 슬롯 (추후 image_picker 패키지 연결 필요)
+              // 하드코딩 itemCount: 4 → 선택된 이미지 + 추가 슬롯
               SizedBox(
                 height: 88,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
-                  itemCount: 4,
+                  itemCount: _pickedImages.length < 4
+                      ? _pickedImages.length + 1
+                      : 4,
                   separatorBuilder: (_, __) => const SizedBox(width: 10),
-                  itemBuilder: (_, __) => const _ImageSlot(),
+                  itemBuilder: (_, index) {
+                    // [ADDED] 선택된 이미지 표시
+                    if (index < _pickedImages.length) {
+                      return _ImageSlot(
+                        imageFile: _pickedImages[index],
+                        onRemove: () => _removeImage(index),
+                      );
+                    }
+                    // [ADDED] 추가 버튼 슬롯
+                    return _ImageSlot(onTap: _pickImage);
+                  },
                 ),
               ),
 
@@ -155,14 +304,25 @@ class _AnalysisRegisterScreenState
               const SizedBox(height: 20),
 
               // ── 국가 드롭다운 ──
-              // TODO: 국가 이름과 국가 코드 (ISO 3166-1 alpha-2)와 매칭하여 백엔드로 보내기
               const _SectionLabel(label: '국가', isRequired: true),
               const SizedBox(height: 8),
-              _OutlinedDropdown(
-                value: _selectedCountry,
-                hintText: '국가를 선택해 주세요',
-                items: _countries,
-                onChanged: (v) => setState(() => _selectedCountry = v),
+              // _OutlinedDropdown(
+              //   value: _selectedCountry,
+              //   hintText: '국가를 선택해 주세요',
+              //   items: _countries,
+              //   onChanged: (v) => setState(() => _selectedCountry = v),
+              // ),
+              _isLoadingCountries
+                  ? const CircularProgressIndicator()
+                  : _OutlinedDropdown(
+                  value: _selectedCountry?.name,
+                  hintText: '국가를 선택해 주세요',
+                  items: _countries.map((e) => e.name).toList(),
+                  onChanged: (name) {
+                    final country = _countries.firstWhere((e) => e.name == name);
+                    setState(() => _selectedCountry = country);
+                    _loadCities(country.code);
+                  },
               ),
 
               const SizedBox(height: 20),
@@ -170,17 +330,28 @@ class _AnalysisRegisterScreenState
               // ── 지역 드롭다운 ──
               const _SectionLabel(label: '지역', isRequired: true),
               const SizedBox(height: 8),
-              _OutlinedDropdown(
-                value: _selectedCity,
+              // _OutlinedDropdown(
+              //   value: _selectedCity,
+              //   hintText: '지역을 선택해 주세요',
+              //   items: _cities,
+              //   onChanged: (v) => setState(() => _selectedCity = v),
+              // ),
+              _isLoadingCities
+                  ? const CircularProgressIndicator()
+                  : _OutlinedDropdown(
+                value: _selectedCity?.name,
                 hintText: '지역을 선택해 주세요',
-                items: _cities,
-                onChanged: (v) => setState(() => _selectedCity = v),
+                items: _cities.map((e) => e.name).toList(),
+                onChanged: (name) {
+                  final city = _cities.firstWhere((e) => e.name == name);
+                  setState(() => _selectedCity = city);
+                },
               ),
 
               const SizedBox(height: 20),
 
-              // ── 채널 드롭다운 ──
-              const _SectionLabel(label: '채널', isRequired: true),
+              // ── 채널(연락 수단) 드롭다운 ──
+              const _SectionLabel(label: '연락 수단', isRequired: true),
               const SizedBox(height: 8),
               _OutlinedDropdown(
                 value: _selectedChannel,
@@ -214,7 +385,7 @@ class _AnalysisRegisterScreenState
             width: double.infinity,
             height: 52,
             child: ElevatedButton(
-              onPressed: _showCompletionBottomSheet,
+              onPressed: _submit,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 shape: RoundedRectangleBorder(
@@ -261,16 +432,51 @@ class _SectionLabel extends StatelessWidget {
 }
 
 // ── 이미지 슬롯 ──
-// TODO: 이미지 첨부 슬롯. onTap에 image_picker 패키지 연결 필요.
 class _ImageSlot extends StatelessWidget {
-  const _ImageSlot();
+  final XFile? imageFile;
+  final VoidCallback? onTap;
+  final VoidCallback? onRemove;
+
+  const _ImageSlot({this.imageFile, this.onTap, this.onRemove});
 
   @override
   Widget build(BuildContext context) {
+    // 이미지가 있으면 미리보기 + 삭제 버튼
+    if (imageFile != null) {
+      return Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.file(
+              File(imageFile!.path),
+              width: 80,
+              height: 80,
+              fit: BoxFit.cover,
+            ),
+          ),
+          Positioned(
+            top: 2,
+            right: 2,
+            child: GestureDetector(
+              onTap: onRemove,
+              child: Container(
+                width: 18,
+                height: 18,
+                decoration: const BoxDecoration(
+                  color: Colors.black54,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.close, color: Colors.white, size: 12),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    // 빈 슬롯 — 추가 버튼
     return GestureDetector(
-      onTap: () {
-        // 이미지 피커 연결 필요
-      },
+      onTap: onTap,
       child: Container(
         width: 80,
         height: 80,
