@@ -274,7 +274,7 @@ class _AnalysisItemCard extends StatelessWidget {
 
   const _AnalysisItemCard({required this.item});
 
-  bool get _isHighTrust => item.score >= _trustHighlightThreshold;
+  bool get _isHighTrust => (100- item.score) >= _trustHighlightThreshold;
 
   @override
   Widget build(BuildContext context) {
@@ -315,7 +315,7 @@ class _AnalysisItemCard extends StatelessWidget {
                   const Icon(Icons.check_circle, color: AppColors.info, size: 16),
                   const SizedBox(width: 4),
                   Text(
-                    '신뢰도 ${item.score}%',
+                    '신뢰도 ${100 - item.score}%',
                     style: AppTypography.small12.copyWith(
                       color: AppColors.info,
                       fontWeight: FontWeight.w600,
@@ -323,7 +323,7 @@ class _AnalysisItemCard extends StatelessWidget {
                   ),
                 ] else ...[
                   Text(
-                    '신뢰도 ${item.score}%',
+                    '신뢰도 ${100 - item.score}%',
                     style: AppTypography.small12.copyWith(color: AppColors.gray500),
                   ),
                 ],

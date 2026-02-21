@@ -297,8 +297,7 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
               const SizedBox(height: 8),
               _OutlinedTextField(
                 controller: _salaryController,
-                hintText: '시급 기준으로 통화와 함께 입력해 주세요',
-                helperText: '예: KRW 12000/h, USD 25/h',
+                hintText: '시급을 입력해 주세요',
               ),
 
               const SizedBox(height: 20),
@@ -306,12 +305,6 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
               // ── 국가 드롭다운 ──
               const _SectionLabel(label: '국가', isRequired: true),
               const SizedBox(height: 8),
-              // _OutlinedDropdown(
-              //   value: _selectedCountry,
-              //   hintText: '국가를 선택해 주세요',
-              //   items: _countries,
-              //   onChanged: (v) => setState(() => _selectedCountry = v),
-              // ),
               _isLoadingCountries
                   ? const CircularProgressIndicator()
                   : _OutlinedDropdown(
@@ -330,12 +323,6 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
               // ── 지역 드롭다운 ──
               const _SectionLabel(label: '지역', isRequired: true),
               const SizedBox(height: 8),
-              // _OutlinedDropdown(
-              //   value: _selectedCity,
-              //   hintText: '지역을 선택해 주세요',
-              //   items: _cities,
-              //   onChanged: (v) => setState(() => _selectedCity = v),
-              // ),
               _isLoadingCities
                   ? const CircularProgressIndicator()
                   : _OutlinedDropdown(
@@ -500,13 +487,11 @@ class _ImageSlot extends StatelessWidget {
 class _OutlinedTextField extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
-  final String? helperText;
   final int maxLines;
 
   const _OutlinedTextField({
     required this.controller,
     required this.hintText,
-    this.helperText,
     this.maxLines = 1,
   });
 
@@ -533,8 +518,6 @@ class _OutlinedTextField extends StatelessWidget {
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: AppTypography.middle14.copyWith(color: AppColors.gray500),
-          helperText: helperText,
-          helperStyle: AppTypography.small12.copyWith(color: AppColors.gray500),
           contentPadding:
           const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           enabledBorder: OutlineInputBorder(

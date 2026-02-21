@@ -82,7 +82,7 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
       setState(() {
         _resultData = AnalysisResultData(
           companyName:         detail.companyName as String,
-          trustScore:          aiResult.riskScore,
+          trustScore:          100- aiResult.riskScore,
           trustLevel:          trustLevel,
           companySummary:      aiResult.message,
           countryVerification: warning.warningMessage as String,
