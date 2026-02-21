@@ -8,6 +8,7 @@ import 'screens/analysis_list.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'screens/login_screen.dart';
 import 'screens/loading_screen.dart';
+import 'screens/profile_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,13 +50,15 @@ class _MainScreenState extends State<MainScreen> {
 
   List<Widget> _buildScreens() {
     return [
-      const HomeScreen(),
+      HomeScreen(
+        onProfileTap: () => setState(() => _selectedIndex = 4),
+      ),
       _PlaceholderScreen(title: '소식'),
       AnalysisListScreen(
         onBackToHome: () => setState(() => _selectedIndex = 0),
       ),
       _PlaceholderScreen(title: '게시판'),
-      _PlaceholderScreen(title: '프로필'),
+      const ProfileScreen(),
     ];
   }
 
@@ -69,8 +72,7 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final bool showAppBar = _selectedIndex != 0 && _selectedIndex != 2;
-
+    final bool showAppBar = _selectedIndex != 0 && _selectedIndex != 2 && _selectedIndex != 4;
     return Scaffold(
       appBar: showAppBar ? AppHeader(title: _titles[_selectedIndex]) : null,
       body: _buildScreens()[_selectedIndex],

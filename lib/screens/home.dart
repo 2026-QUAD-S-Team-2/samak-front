@@ -5,6 +5,7 @@ import '../core/design_system/app_dimensions.dart';
 import '../core/design_system/app_text_styles.dart';
 import '../core/design_system/app_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'profile_screen.dart';
 // API 연동
 import '../data/repositories/member_repository.dart';
 import '../data/repositories/quiz_repository.dart';
@@ -15,7 +16,8 @@ import '../data/repositories/news_repository.dart';
 import '../data/models/news_model.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final VoidCallback? onProfileTap;
+  const HomeScreen({super.key, this.onProfileTap});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -76,7 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: statusBarHeight + AppDimensions.bottomSafeArea),
-            _ProfileSection(member: _member), // member 전달
+            _ProfileSection(member: _member, onProfileTap: widget.onProfileTap), // member 전달
             /*
             if (_homeError != null)
               Padding(
@@ -107,8 +109,9 @@ class _HomeScreenState extends State<HomeScreen> {
 // member 파라미터 추가
 class _ProfileSection extends StatelessWidget {
   final MemberModel? member;
+  final VoidCallback? onProfileTap;
 
-  const _ProfileSection({this.member});
+  const _ProfileSection({this.member, this.onProfileTap});
 
   @override
   Widget build(BuildContext context) {
@@ -116,13 +119,15 @@ class _ProfileSection extends StatelessWidget {
       padding: AppDimensions.screenEdgePadding,
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 24,
-            // 프로필 이미지 — 없으면 기본 색상
-            backgroundImage: member?.profileImageUrl != null
-                ? NetworkImage(member!.profileImageUrl!)
-                : null,
-            backgroundColor: AppColors.gray900,
+          GestureDetector(
+            onTap: onProfileTap,
+            child: CircleAvatar(
+              radius: 24,
+              backgroundImage: member?.profileImageUrl != null
+                  ? NetworkImage(member!.profileImageUrl!)
+                  : null,
+              backgroundColor: AppColors.gray900,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
