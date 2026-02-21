@@ -23,8 +23,16 @@ class SamakFEApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'SamakFE',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
+        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
         useMaterial3: true,
+        snackBarTheme: SnackBarThemeData(
+          backgroundColor: AppColors.gray900,
+          contentTextStyle: AppTypography.middle14.copyWith(color: Colors.white),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
       ),
       home: const LoadingScreen(),
     );

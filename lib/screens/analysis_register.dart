@@ -1,13 +1,14 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+// import 'package:flutter_svg/flutter_svg.dart';
 import '../core/design_system/app_colors.dart';
 import '../core/design_system/app_dimensions.dart';
 import '../core/design_system/app_text_styles.dart';
 import '../core/design_system/widgets/app_header.dart';
-import '../core/design_system/app_icons.dart';
+// import '../core/design_system/app_icons.dart';
 import '../screens/analysis_result.dart';
+import '../core/design_system/widgets/app_dropdown.dart';
 // API 연동
 import 'package:image_picker/image_picker.dart';
 import '../data/repositories/country_repository.dart';
@@ -307,15 +308,15 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
               const SizedBox(height: 8),
               _isLoadingCountries
                   ? const CircularProgressIndicator()
-                  : _OutlinedDropdown(
-                  value: _selectedCountry?.name,
-                  hintText: '국가를 선택해 주세요',
-                  items: _countries.map((e) => e.name).toList(),
-                  onChanged: (name) {
-                    final country = _countries.firstWhere((e) => e.name == name);
-                    setState(() => _selectedCountry = country);
-                    _loadCities(country.code);
-                  },
+                  : AppDropdown(
+                value: _selectedCountry?.name,
+                hintText: '국가를 선택해 주세요',
+                items: _countries.map((e) => e.name).toList(),
+                onChanged: (name) {
+                  final country = _countries.firstWhere((e) => e.name == name);
+                  setState(() => _selectedCountry = country);
+                  _loadCities(country.code);
+                },
               ),
 
               const SizedBox(height: 20),
@@ -325,7 +326,7 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
               const SizedBox(height: 8),
               _isLoadingCities
                   ? const CircularProgressIndicator()
-                  : _OutlinedDropdown(
+                  : AppDropdown(
                 value: _selectedCity?.name,
                 hintText: '지역을 선택해 주세요',
                 items: _cities.map((e) => e.name).toList(),
@@ -340,9 +341,9 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
               // ── 채널(연락 수단) 드롭다운 ──
               const _SectionLabel(label: '연락 수단', isRequired: true),
               const SizedBox(height: 8),
-              _OutlinedDropdown(
+              AppDropdown(
                 value: _selectedChannel,
-                hintText: '채널을 선택해 주세요',
+                hintText: '연락 수단을 선택해 주세요',
                 items: _channels,
                 onChanged: (v) => setState(() => _selectedChannel = v),
               ),
@@ -526,63 +527,12 @@ class _OutlinedTextField extends StatelessWidget {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: AppColors.gray900, width: 1.5),
+            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
           ),
           filled: true,
           fillColor: Colors.white,
         ),
       ),
-    );
-  }
-}
-
-// ── 외곽선 드롭다운 ──
-class _OutlinedDropdown extends StatelessWidget {
-  final String? value;
-  final String hintText;
-  final List<String> items;
-  final ValueChanged<String?> onChanged;
-
-  const _OutlinedDropdown({
-    required this.value,
-    required this.hintText,
-    required this.items,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return DropdownButtonFormField<String>(
-      value: value,
-      hint: Text(
-        hintText,
-        style: AppTypography.middle14.copyWith(color: AppColors.gray500),
-      ),
-      icon: SvgPicture.asset(
-        AppIcons.arrowDown,
-        width: 20,
-        height: 20,
-        colorFilter: ColorFilter.mode(AppColors.gray500, BlendMode.srcIn),
-      ),
-      style: AppTypography.middle14.copyWith(color: AppColors.gray900),
-      decoration: InputDecoration(
-        contentPadding:
-        const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: AppColors.gray300, width: 1),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: AppColors.gray900, width: 1.5),
-        ),
-        filled: true,
-        fillColor: Colors.white,
-      ),
-      items: items
-          .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-          .toList(),
-      onChanged: onChanged,
     );
   }
 }
