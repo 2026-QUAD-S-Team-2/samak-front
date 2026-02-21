@@ -573,8 +573,8 @@ class _QuizSectionState extends State<_QuizSection> {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: isCorrect
-                          ? AppColors.success.withOpacity(0.1)
-                          : AppColors.error.withOpacity(0.1),
+                          ? AppColors.info
+                          : AppColors.gray200,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -622,6 +622,16 @@ class _QuizSectionState extends State<_QuizSection> {
                     ),
                   ],
                 ),
+                if (isSolved) ...[
+                  const SizedBox(height: 12),
+                  Center(
+                    child: Text(
+                      '오늘의 퀴즈는 이미 풀었어요. 내일 다시 도전해 보세요!',
+                      style: AppTypography.small12.copyWith(color: AppColors.textSecondary),
+                      textAlign: TextAlign.center,
+                    )
+                  )
+                ]
               ],
             ),
           ),
@@ -647,7 +657,7 @@ class _QuizButton extends StatelessWidget {
     final Color bgColor = switch (state) {
       _QuizButtonState.idle    => label == 'O' ? AppColors.info : AppColors.gray200,
       _QuizButtonState.correct => AppColors.success,
-      _QuizButtonState.wrong   => AppColors.error.withOpacity(0.3),
+      _QuizButtonState.wrong   => AppColors.gray300,
     };
     final Color textColor = switch (state) {
       _QuizButtonState.idle    => label == 'O' ? Colors.white : AppColors.gray500,
