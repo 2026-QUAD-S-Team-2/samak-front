@@ -7,19 +7,15 @@ import 'screens/home.dart';
 import 'screens/analysis_list.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'screens/login_screen.dart';
+import 'screens/loading_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  const storage = FlutterSecureStorage();
-  final String? token = await storage.read(key: 'auth_token');
-
-  runApp(SamakFEApp(isLoggedIn: token != null));
+  runApp(const SamakFEApp());
 }
 
 class SamakFEApp extends StatelessWidget {
-  final bool isLoggedIn;
-  const SamakFEApp({super.key, required this.isLoggedIn});
+  const SamakFEApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -30,8 +26,7 @@ class SamakFEApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
         useMaterial3: true,
       ),
-      // [ADDED] 토큰 유무에 따라 첫 화면 분기
-      home: isLoggedIn ? MainScreen() : LoginScreen(),
+      home: const LoadingScreen(),
     );
   }
 }

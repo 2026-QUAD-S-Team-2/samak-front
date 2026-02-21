@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:dio/dio.dart';
+import 'package:samak_fe/core/design_system/app_dimensions.dart';
+import 'package:samak_fe/core/design_system/app_icons.dart';
 import '../core/design_system/app_colors.dart';
 import '../main.dart';
+import '../core/design_system/widgets/app_dialog.dart';
+import '../core/design_system/app_text_styles.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -32,7 +37,11 @@ class _LoginScreenState extends State<LoginScreen> {
       final String? idToken = account.authentication.idToken;
 
       if (idToken == null) {
-        throw Exception("ID Token을 가져오지 못했습니다.");
+        AppDialog.show(
+            context,
+            title: '로그인 오류',
+            message: '인증 토큰을 가져올 수 없습니다.\n잠시 후 다시 시도해 주세요.'
+        );
       }
 
       final response = await _dio.post(
@@ -56,12 +65,30 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => MainScreen()),
         );
+      } else {
+        AppDialog.show(
+          context,
+          title: '로그인 오류',
+          message: '서버 오류가 발생했습니다.\n잠시 후 다시 시도해 주세요.',
+        );
       }
     } catch (e) {
-      print("Google Login Error: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('로그인 실패: $e')),
-      );
+      final String message;
+      final String errorStr = e.toString();
+
+      if (errorStr.contains('network') || errorStr.contains('SocketException')) {
+        message = '네트워크 연결을 확인해 주세요.';
+      } else if (errorStr.contains('cancel') || errorStr.contains('sign_in_canceled')) {
+        message = '로그인이 취소되었습니다.';
+      } else if (errorStr.contains('sign_in_failed')) {
+        message = 'Google 로그인에 실패했습니다.\n잠시 후 다시 시도해 주세요.';
+      } else {
+        message = '알 수 없는 오류가 발생했습니다.\n잠시 후 다시 시도해 주세요.';
+      }
+
+      if (mounted) {
+        AppDialog.show(context, title: '로그인 오류', message: message);
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -71,14 +98,41 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Center(
-        child: _isLoading
-            ? const CircularProgressIndicator()
-            : ElevatedButton.icon(
-          onPressed: _handleGoogleLogin,
-          icon: const Icon(Icons.login),
-          label: const Text('Google로 로그인'),
-        ),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SvgPicture.asset(
+            AppIcons.title,
+            width: 180,
+            height: 85,
+          ),
+          SizedBox(height: AppDimensions.gapSection,),
+          Center(
+            child: _isLoading
+                ? const CircularProgressIndicator(
+              color: AppColors.primary,
+              strokeWidth: 2.5,
+            )
+                : ElevatedButton.icon(
+              onPressed: _handleGoogleLogin,
+              icon: const Icon(Icons.login, color: AppColors.primary),
+              label: const Text(
+                'Google로 로그인',
+                style: TextStyle(
+                  color: AppColors.primary
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.background,
+                minimumSize: const Size(130, 52),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(100),
+                ),
+                elevation: 2.0, // 그림자 제거
+              ),
+            ),
+          ),
+        ]
       ),
     );
   }
