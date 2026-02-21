@@ -265,19 +265,19 @@ class _AnnouncementCard extends StatelessWidget {
           MaterialPageRoute(
             builder: (_) => AnalysisResultScreen(
               onBack: () => Navigator.of(context).pop(),
-              // TODO: AnnouncementItem → AnalysisResultData 변환 로직 연결 필요 (서버 데이터 연동 시)
-              resultData: AnalysisResultData(
-                companyName: item.companyName,
-                trustScore: item.trustScore,
-                trustLevel: item.trustScore >= 70
-                    ? TrustLevel.good
-                    : item.trustScore >= 40
-                    ? TrustLevel.normal
-                    : TrustLevel.bad,
-                companySummary: '분석 데이터를 불러오는 중입니다.',       // TODO: 서버 데이터로 교체
-                countryVerification: '분석 데이터를 불러오는 중입니다.', // TODO: 서버 데이터로 교체
-                reportHistory: '분석 데이터를 불러오는 중입니다.',
-              ),
+              analysisItemId: item.id,
+              // resultData: AnalysisResultData(
+              //   companyName: item.companyName,
+              //   trustScore: item.trustScore,
+              //   trustLevel: item.trustScore >= 70
+              //       ? TrustLevel.good
+              //       : item.trustScore >= 40
+              //       ? TrustLevel.normal
+              //       : TrustLevel.bad,
+              //   companySummary: '분석 데이터를 불러오는 중입니다.',       // TODO: 서버 데이터로 교체
+              //   countryVerification: '분석 데이터를 불러오는 중입니다.', // TODO: 서버 데이터로 교체
+              //   reportHistory: '분석 데이터를 불러오는 중입니다.',
+              // ),
             )
           )
         );
