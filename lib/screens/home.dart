@@ -22,7 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // 멤버/퀴즈 데이터 상태
   MemberModel? _member;
   TodayQuizModel? _quiz;
-  String? _homeError;
+  // String? _homeError;
 
   @override
   void initState() {
@@ -37,21 +37,25 @@ class _HomeScreenState extends State<HomeScreen> {
         MemberRepository.instance.getMe(),
         QuizRepository.instance.getTodayQuiz(),
       ]);
+      debugPrint('member raw: ${results[0]}');
       setState(() {
         _member = results[0] as MemberModel;
         _quiz   = results[1] as TodayQuizModel;
       });
     } on ApiException catch (e) {
-      setState(() => _homeError = e.message);
+      // setState(() => _homeError = e.message);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.message)),
         );
       }
-    } catch (e) {
+    }
+    /*
+    catch (e) {
       // ApiException 외 예외도 확인
       setState(() => _homeError = e.toString());
     }
+    */
   }
 
   @override
@@ -66,6 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             SizedBox(height: statusBarHeight + AppDimensions.bottomSafeArea),
             _ProfileSection(member: _member), // member 전달
+            /*
             if (_homeError != null)
               Padding(
                 padding: AppDimensions.screenEdgePadding,
@@ -74,6 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: AppTypography.small12.copyWith(color: AppColors.error),
                 ),
               ),
+             */
             AppDimensions.verticalGap16,
             Padding(
               padding: AppDimensions.screenEdgePadding,

@@ -17,10 +17,14 @@ class MemberModel {
   factory MemberModel.fromJson(Map<String, dynamic> json) {
     return MemberModel(
       id:              json['id']              as int,
-      email:           json['email']           as String,
-      nickname:        json['nickname']        as String,
+      email:           (json['email']           as String?) ?? '',
+      nickname:        (json['nickname']        as String?) ?? '사용자',
       profileImageUrl: json['profileImageUrl'] as String?,
-      isOnboarded:     json['isOnboarded']     as bool,
+      isOnboarded:     (json['isOnboarded']     as bool?) ?? false,
     );
   }
+  // 디버깅 용 코드
+  // @override
+  // String toString() =>
+  //     'MemberModel(id: $id, email: $email, nickname: $nickname, isOnboarded: $isOnboarded)';
 }
