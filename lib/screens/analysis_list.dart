@@ -5,32 +5,10 @@ import '../core/design_system/app_text_styles.dart';
 import '../core/design_system/widgets/app_header.dart';
 import '../screens/analysis_register.dart';
 import '../screens/analysis_result.dart';
-
-// 데이터 모델
-class AnnouncementItem {
-  final String companyName;
-  final int trustScore; // 0 ~ 100
-  final String examDate; // 'YYYY.MM.DD'
-  final String location;
-
-  const AnnouncementItem({
-    required this.companyName,
-    required this.trustScore,
-    required this.examDate,
-    required this.location,
-  });
-}
-
-// ─────────────────────────────────────────────
-// 샘플 데이터
-// ─────────────────────────────────────────────
-const List<AnnouncementItem> _sampleItems = [
-  AnnouncementItem(companyName: '삼은 반도체', trustScore: 13,  examDate: '2026.02.01', location: '중국, 북경'),
-  AnnouncementItem(companyName: '현대 건설',   trustScore: 100, examDate: '2026.02.04', location: '한국, 서울'),
-  AnnouncementItem(companyName: '카카오',     trustScore: 27,  examDate: '2026.02.01', location: '중국, 북경'),
-  AnnouncementItem(companyName: '네이버',     trustScore: 94,  examDate: '2026.02.04', location: '한국, 서울'),
-  AnnouncementItem(companyName: '삼원 전자',   trustScore: 61,  examDate: '2026.02.10', location: '한국, 부산'),
-];
+// API 연동
+import '../data/repositories/analysis_repository.dart';
+import '../data/models/analysis_item_list_model.dart';
+import '../core/network/api_exception.dart';
 
 // 신뢰도 강조 표시 기준: 70% 이상
 const int _trustHighlightThreshold = 70;
@@ -49,9 +27,37 @@ class AnalysisListScreen extends StatefulWidget {
 }
 
 class _AnalysisListScreenState extends State<AnalysisListScreen> {
+  List<AnalysisItemListModel> _items = [];
+  bool _isLoading = true;
+  String? _errorMessage;
   SortMode _sortMode = SortMode.date;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadItems();
+  }
+
+  // 목록 조회 — trustLow는 RISK_SCORE로 받아 클라이언트에서 역순 처리
+  Future<void> _loadItems() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    try {
+      final sortType = _sortMode == SortMode.date
+          ? AnalysisSortType.latest
+          : AnalysisSortType.riskScore;
+      final items = await AnalysisRepository.instance.getItems(sortType: sortType);
+      setState(() => _items = items);
+    } on ApiException catch (e) {
+      setState(() => _errorMessage = e.message);
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -59,19 +65,22 @@ class _AnalysisListScreenState extends State<AnalysisListScreen> {
     super.dispose();
   }
 
-  List<AnnouncementItem> get _filteredAndSortedItems {
-    List<AnnouncementItem> result = _sampleItems.where((item) {
-      return item.companyName.contains(_searchQuery);
-    }).toList();
+  // _sampleItems → _items, 클라이언트 정렬은 trustLow만 유지
+  // COMPLETED 아이템만 score 기준 정렬, 나머지는 항상 하단
+  List<AnalysisItemListModel> get _filteredAndSortedItems {
+    List<AnalysisItemListModel> result = _items
+        .where((item) => item.companyName.contains(_searchQuery))
+        .toList();
 
-    if (_sortMode == SortMode.trustHigh) {
-      result.sort((a, b) => b.trustScore.compareTo(a.trustScore));
-    } else if (_sortMode == SortMode.trustLow) {
-      result.sort((a, b) => a.trustScore.compareTo(b.trustScore));
-    } else {
-      result.sort((a, b) => b.examDate.compareTo(a.examDate));
+    if (_sortMode == SortMode.trustHigh || _sortMode == SortMode.trustLow) {
+      var completed = result.where((e) => e.status == AnalysisStatus.completed).toList();
+      final others = result.where((e) => e.status != AnalysisStatus.completed).toList();
+
+      if (_sortMode == SortMode.trustHigh) {
+        completed = completed.reversed.toList();
+      }
+      result = [...completed, ...others];
     }
-
     return result;
   }
 
@@ -84,8 +93,18 @@ class _AnalysisListScreenState extends State<AnalysisListScreen> {
         showBackButton: true,
         onBack: widget.onBackToHome,
       ),
-      body: Column(
-        children: [
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+          : _errorMessage != null
+          ? Center(
+              child: Text(
+                _errorMessage!,
+                style: AppTypography.middle14.copyWith(color: AppColors.gray500),
+                textAlign: TextAlign.center,
+              ),
+            )
+          :Column(
+            children: [
           // ── 검색 바 ──
           Container(
             margin: EdgeInsetsGeometry.symmetric(vertical: 8, horizontal: 16),
@@ -114,7 +133,7 @@ class _AnalysisListScreenState extends State<AnalysisListScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                // [MODIFIED] 신뢰도 칩 — 높은순 → 낮은순 → 취소 순환
+                // 신뢰도 칩 — 높은순 → 낮은순 → 취소 순환
                 _SortChip(
                   label: _sortMode == SortMode.trustHigh
                       ? '신뢰도 높은 순'
@@ -122,21 +141,27 @@ class _AnalysisListScreenState extends State<AnalysisListScreen> {
                       ? '신뢰도 낮은 순'
                       : '신뢰도 순',
                   isSelected: _sortMode == SortMode.trustHigh || _sortMode == SortMode.trustLow,
-                  onTap: () => setState(() {
-                    if (_sortMode == SortMode.trustHigh) {
-                      _sortMode = SortMode.trustLow;
-                    } else if (_sortMode == SortMode.trustLow) {
-                      _sortMode = SortMode.date;
-                    } else {
-                      _sortMode = SortMode.trustHigh;
-                    }
-                  }),
+                  onTap: () {
+                    setState(() {
+                      if (_sortMode == SortMode.trustHigh) {
+                        _sortMode = SortMode.trustLow;
+                      } else if (_sortMode == SortMode.trustLow) {
+                        _sortMode = SortMode.date;
+                      } else {
+                        _sortMode = SortMode.trustHigh;
+                      }
+                    });
+                    _loadItems();
+                  },
                 ),
                 const SizedBox(width: 8),
                 _SortChip(
                   label: '날짜 순',
                   isSelected: _sortMode == SortMode.date,
-                  onTap: () => setState(() => _sortMode = SortMode.date),
+                  onTap: () {
+                    setState(() => _sortMode = SortMode.date);
+                    _loadItems();
+                  },
                 ),
               ],
             ),
@@ -154,7 +179,7 @@ class _AnalysisListScreenState extends State<AnalysisListScreen> {
               itemCount: _filteredAndSortedItems.length,
               separatorBuilder: (_, __) => AppDimensions.verticalGap16,
               itemBuilder: (context, index) {
-                return _AnnouncementCard(item: _filteredAndSortedItems[index]);
+                return _AnalysisItemCard(item: _filteredAndSortedItems[index]);
               },
             ),
           ),
@@ -167,7 +192,7 @@ class _AnalysisListScreenState extends State<AnalysisListScreen> {
             MaterialPageRoute(
               builder: (_) => AnalysisRegisterScreen(
                 onBack: () => Navigator.of(context).pop(),
-                // TODO: onConfirmResult 연결 시 분석 결과 화면으로 이동 구현 필요
+                onGoToList: () => Navigator.of(context).pop(),
               ),
             ),
           );
@@ -250,38 +275,49 @@ class _SortChip extends StatelessWidget {
 }
 
 // 공고 카드 위젯
-class _AnnouncementCard extends StatelessWidget {
-  final AnnouncementItem item;
+class _AnalysisItemCard extends StatelessWidget {
+  final AnalysisItemListModel item;
 
-  const _AnnouncementCard({required this.item});
+  const _AnalysisItemCard({required this.item});
 
-  bool get _isHighTrust => item.trustScore >= _trustHighlightThreshold;
+  bool get _isHighTrust => (100- item.score) >= _trustHighlightThreshold;
+
+  Color _statusColor(AnalysisStatus status) {
+    switch (status) {
+      case AnalysisStatus.pending:    return AppColors.gray500;
+      case AnalysisStatus.processing: return AppColors.warning;
+      case AnalysisStatus.completed:  return AppColors.success;
+      case AnalysisStatus.failed:     return AppColors.error;
+    }
+  }
+
+  String _statusLabel(AnalysisStatus status) {
+    switch (status) {
+      case AnalysisStatus.pending:    return '대기 중';
+      case AnalysisStatus.processing: return '분석 중';
+      case AnalysisStatus.completed:  return '분석 완료';
+      case AnalysisStatus.failed:     return '분석 실패';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    // createdAt → 'YYYY.MM.DD' 포맷 변환
+    final examDate =
+        '${item.createdAt.year}.${item.createdAt.month.toString().padLeft(2, '0')}.${item.createdAt.day.toString().padLeft(2, '0')}';
+
     return GestureDetector(
-      onTap: () {
+      onTap: item.status == AnalysisStatus.completed ? () {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (_) => AnalysisResultScreen(
               onBack: () => Navigator.of(context).pop(),
-              // TODO: AnnouncementItem → AnalysisResultData 변환 로직 연결 필요 (서버 데이터 연동 시)
-              resultData: AnalysisResultData(
-                companyName: item.companyName,
-                trustScore: item.trustScore,
-                trustLevel: item.trustScore >= 70
-                    ? TrustLevel.good
-                    : item.trustScore >= 40
-                    ? TrustLevel.normal
-                    : TrustLevel.bad,
-                companySummary: '분석 데이터를 불러오는 중입니다.',       // TODO: 서버 데이터로 교체
-                countryVerification: '분석 데이터를 불러오는 중입니다.', // TODO: 서버 데이터로 교체
-                reportHistory: '분석 데이터를 불러오는 중입니다.',
-              ),
-            )
-          )
+              analysisItemId: item.id,
+              // resultData 제거 → analysisItemId 전달
+            ),
+          ),
         );
-      },
+      } : null,
       child: Container(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
         decoration: BoxDecoration(
@@ -291,7 +327,6 @@ class _AnnouncementCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── 회사명 + 신뢰도 ──
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -300,28 +335,41 @@ class _AnnouncementCard extends StatelessWidget {
                   style: AppTypography.largeBold16.copyWith(letterSpacing: -0.5),
                 ),
                 const Spacer(),
-                if (_isHighTrust) ...[
-                  const Icon(Icons.check_circle, color: AppColors.info, size: 16),
-                  const SizedBox(width: 4),
-                  Text(
-                    '신뢰도 ${item.trustScore}%',
-                    style: AppTypography.small12.copyWith(
-                      color: AppColors.info,
-                      fontWeight: FontWeight.w600,
+                // 상태 뱃지
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: _statusColor(item.status),
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                  child: Text(
+                    _statusLabel(item.status),
+                    style: AppTypography.small12.copyWith(color: Colors.white),
+                  ),
+                ),
+                const SizedBox(width: 10,),
+                // [MODIFIED] 분석 완료 상태일 때만 신뢰도 표시
+                if (item.status == AnalysisStatus.completed) ...[
+                  if (_isHighTrust) ...[
+                    const Icon(Icons.check_circle, color: AppColors.info, size: 16),
+                    const SizedBox(width: 4),
+                    Text(
+                      '신뢰도 ${100 - item.score}%',
+                      style: AppTypography.small12.copyWith(
+                        color: AppColors.info,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                ] else ...[
-                  Text(
-                    '신뢰도 ${item.trustScore}%',
-                    style: AppTypography.small12.copyWith(color: AppColors.gray500),
-                  ),
+                  ] else ...[
+                    Text(
+                      '신뢰도 ${100 - item.score}%',
+                      style: AppTypography.small12.copyWith(color: AppColors.gray500),
+                    ),
+                  ],
                 ],
               ],
             ),
-
             const SizedBox(height: 12),
-
-            // ── 검사 날짜 / 위치 상세 박스 ──
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
@@ -331,15 +379,16 @@ class _AnnouncementCard extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  _InfoColumn(label: '검사 날짜', value: item.examDate),
+                  // '검사 날짜' → '등록 날짜'
+                  _InfoColumn(label: '등록 날짜', value: examDate),
                   const Spacer(),
-                  Container(width: 1, height: 32),
+                  SizedBox(width: 1, height: 32),
                   const Spacer(),
-                  _InfoColumn(label: '위치', value: item.location),
+                  // location → countryCode
+                  _InfoColumn(label: '국가 코드', value: item.countryCode),
                 ],
               ),
             ),
-
             const SizedBox(height: 16),
           ],
         ),

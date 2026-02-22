@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:dio/dio.dart';
+import 'package:samak_fe/core/network/dio_client.dart';
+import 'package:samak_fe/core/network/api_exception.dart';
+import 'package:samak_fe/core/design_system/app_dimensions.dart';
+import 'package:samak_fe/core/design_system/app_icons.dart';
 import '../core/design_system/app_colors.dart';
 import '../main.dart';
+import '../core/design_system/widgets/app_dialog.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,29 +18,34 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
-  final Dio _dio = Dio(BaseOptions(baseUrl: 'https://samak.mooo.com'));
-
   bool _isLoading = false;
 
   Future<void> _handleGoogleLogin() async {
     setState(() => _isLoading = true);
 
     try {
+      // ── Google 인증 ──
       await GoogleSignIn.instance.initialize(
         serverClientId: '813032635406-c9l4qiv9lijsfjpovhvu1k9ggfnohg4d.apps.googleusercontent.com',
       );
 
       final GoogleSignInAccount account = await GoogleSignIn.instance.authenticate();
-
       final String? idToken = account.authentication.idToken;
 
       if (idToken == null) {
-        throw Exception("ID Token을 가져오지 못했습니다.");
+        if (mounted) {
+          AppDialog.show(
+            context,
+            title: '로그인 오류',
+            message: '인증 토큰을 가져올 수 없습니다.\n잠시 후 다시 시도해 주세요.',
+          );
+        }
+        return;
       }
 
-      final response = await _dio.post(
+      // 독자적 Dio 인스턴스 → DioClient.instance 사용
+      final data = await DioClient.instance.post(
         '/api/v1/auth/oauth2/login',
         data: {
           'provider': 'GOOGLE',
@@ -43,25 +53,41 @@ class _LoginScreenState extends State<LoginScreen> {
         },
       );
 
-      if (response.statusCode == 200) {
-        final data = response.data['data'];
-        await _storage.write(key: 'auth_token', value: data['token']);
+      // statusCode 분기 제거 — ApiException이 throw되지 않으면 성공
+      await _storage.write(key: 'auth_token', value: data['token'] as String);
+      await _storage.write(key: 'user_id',    value: (data['id'] as int).toString());
+      await _storage.write(key: 'user_email', value: data['email'] as String);
 
-        await _storage.write(key: 'user_id', value: data['id'].toString());
-        await _storage.write(key: 'user_email', value: data['email']);
+      if (!mounted) return;
 
-        if (!mounted) return;
-
-        // final bool isOnboarded = data['isOnboarded'];
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => MainScreen()),
-        );
-      }
-    } catch (e) {
-      print("Google Login Error: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('로그인 실패: $e')),
+      // final bool isOnboarded = data['isOnboarded'] as bool;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => MainScreen()),
       );
+
+      // ApiException: DioClient 에서 변환된 서버/네트워크 에러 처리
+    } on ApiException catch (e) {
+      if (mounted) {
+        AppDialog.show(context, title: '로그인 오류', message: e.message);
+      }
+
+      // Google 로그인 전용 에러 처리 (sign_in_canceled, sign_in_failed 등)
+    } catch (e) {
+      if (!mounted) return;
+
+      final String errorStr = e.toString();
+      final String message;
+
+      if (errorStr.contains('cancel') || errorStr.contains('sign_in_canceled')) {
+        message = '로그인이 취소되었습니다.';
+      } else if (errorStr.contains('sign_in_failed')) {
+        message = 'Google 로그인에 실패했습니다.\n잠시 후 다시 시도해 주세요.';
+      } else {
+        message = '알 수 없는 오류가 발생했습니다.\n잠시 후 다시 시도해 주세요.';
+      }
+
+      AppDialog.show(context, title: '로그인 오류', message: message);
+
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -71,14 +97,39 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Center(
-        child: _isLoading
-            ? const CircularProgressIndicator()
-            : ElevatedButton.icon(
-          onPressed: _handleGoogleLogin,
-          icon: const Icon(Icons.login),
-          label: const Text('Google로 로그인'),
-        ),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SvgPicture.asset(
+            AppIcons.title,
+            width: 180,
+            height: 85,
+          ),
+          SizedBox(height: AppDimensions.gapSection),
+          Center(
+            child: _isLoading
+                ? const CircularProgressIndicator(
+              color: AppColors.primary,
+              strokeWidth: 2.5,
+            )
+                : ElevatedButton.icon(
+              onPressed: _handleGoogleLogin,
+              icon: const Icon(Icons.login, color: AppColors.primary),
+              label: const Text(
+                'Google로 로그인',
+                style: TextStyle(color: AppColors.primary),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.background,
+                minimumSize: const Size(130, 52),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(100),
+                ),
+                elevation: 2.0,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

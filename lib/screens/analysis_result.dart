@@ -5,6 +5,11 @@ import '../core/design_system/app_dimensions.dart';
 import '../core/design_system/app_text_styles.dart';
 import '../core/design_system/widgets/app_header.dart';
 import '../core/design_system/app_icons.dart';
+// API 연동
+import '../data/repositories/analysis_repository.dart';
+import '../data/models/ai_analysis_result_model.dart';
+import '../data/models/analysis_item_list_model.dart';
+import '../core/network/api_exception.dart';
 
 // 분석 결과 데이터 모델
 enum TrustLevel { good, bad, normal }
@@ -27,74 +32,159 @@ class AnalysisResultData {
   });
 }
 
-// 샘플 데이터
-const AnalysisResultData _sampleResult = AnalysisResultData(
-  companyName: 'OO회사',
-  trustScore: 94,
-  trustLevel: TrustLevel.good,
-  companySummary:
-  '\'OO회사\'는 영국 런던에 위치하고 있으며, 구글 지도에서 검색한 회사의 위치와 공고에 표기된 회사의 위치가 일치합니다.\n\n'
-      '직원수는 30명 이상으로 보여지며, 지난해 영업이익 __원을 창출한 기록이 있습니다. 지난 2년 간 동행을 확인했을 때 올해도 상승할 추이로 보여집니다.\n\n'
-      '블라인드에서의 회사 평점은 4점 이상으로 보여지며, 총 리뷰 50 건 중 긍정 리뷰가 44건 확인되었습니다.',
-  countryVerification:
-  '2026년 기준 영국의 최저임금은 __유로입니다. \'지원자이름\'님의 현재 경력은 \'1년 미만\'으로 보여지며, 영국의 1년 미만 개발자는 평균 __유로를 받고 있습니다. 공고는 타당한 금액을 연봉으로 제시하고 있습니다.',
-  reportHistory: '\'OO회사\'를 신고한 이력은 없으므로 안심하셔도 되어요.',
-);
-
 // 공고 분석 결과 화면
-class AnalysisResultScreen extends StatelessWidget {
+class AnalysisResultScreen extends StatefulWidget {
   final VoidCallback? onBack;
-  final AnalysisResultData? resultData;
+  final int analysisItemId;
 
   const AnalysisResultScreen({
     super.key,
     this.onBack,
-    this.resultData,
+    required this.analysisItemId,
   });
 
   @override
-  Widget build(BuildContext context) {
-    final data = resultData ?? _sampleResult;
+  State<AnalysisResultScreen> createState() => _AnalysisResultScreenState();
+}
 
+class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
+  // 로딩 및 데이터 상태
+  bool _isLoading = true;
+  String? _errorMessage;
+  AnalysisResultData? _resultData;
+  static const Duration _pollInterval = Duration(seconds: 3);
+  static const int _maxPollCount = 20; // 최대 60초 대기
+
+  @override
+  void initState() {
+    super.initState();
+    _loadResult();
+  }
+
+  // 3개 API 병렬 호출 후 AnalysisResultData로 변환
+  Future<void> _loadResult() async {
+    try {
+      final id = widget.analysisItemId;
+      // debugPrint('[AnalysisResult] 로드 시작 - analysisItemId: $id');
+
+      // [ADDED] COMPLETED 상태가 될 때까지 폴링
+      int pollCount = 0;
+      while (true) {
+        final detail = await AnalysisRepository.instance.getDetail(id);
+        // debugPrint('[AnalysisResult] status: ${detail.status}, pollCount: $pollCount');
+
+        if (detail.status == AnalysisStatus.completed) {
+          // COMPLETED → AI 분석 결과 + 국가 경고 조회
+          final results = await Future.wait([
+            AnalysisRepository.instance.getAiAnalysis(id),
+            AnalysisRepository.instance.getCountryWarning(id),
+          ]);
+
+          final aiResult = results[0] as AiAnalysisResultModel;
+          final warning  = results[1] as dynamic;
+
+          // debugPrint('[AnalysisResult] aiResult: riskScore=${aiResult.riskScore}, riskLevel=${aiResult.riskLevel}');
+          // debugPrint('[AnalysisResult] warning: ${warning.warningMessage}');
+
+          final trustLevel = switch (aiResult.riskLevel.toUpperCase()) {
+            'LOW'    => TrustLevel.good,
+            'MEDIUM' => TrustLevel.normal,
+            _        => TrustLevel.bad,
+          };
+
+          setState(() {
+            _resultData = AnalysisResultData(
+              companyName:         detail.companyName as String,
+              trustScore:          100 - aiResult.riskScore,
+              trustLevel:          trustLevel,
+              companySummary:      aiResult.message,
+              countryVerification: warning.warningMessage as String,
+              reportHistory:       '신고 이력 데이터를 불러왔습니다.',
+            );
+            _isLoading = false;
+          });
+          return;
+
+        } else if (detail.status == AnalysisStatus.failed) {
+          // [ADDED] 분석 실패 처리
+          // debugPrint('[AnalysisResult] 분석 실패');
+          setState(() {
+            _errorMessage = '분석에 실패했습니다. 다시 시도해 주세요.';
+            _isLoading = false;
+          });
+          return;
+
+        } else if (pollCount >= _maxPollCount) {
+          // [ADDED] 최대 대기 시간 초과
+          // debugPrint('[AnalysisResult] 폴링 타임아웃');
+          setState(() {
+            _errorMessage = '분석에 시간이 오래 걸리고 있습니다. 잠시 후 다시 확인해 주세요.';
+            _isLoading = false;
+          });
+          return;
+        }
+
+        // [ADDED] PENDING/PROCESSING → 대기 후 재시도
+        pollCount++;
+        await Future.delayed(_pollInterval);
+      }
+
+    } on ApiException catch (e) {
+      // debugPrint('[AnalysisResult] ApiException: ${e.message}');
+      setState(() {
+        _errorMessage = e.message;
+        _isLoading = false;
+      });
+    } catch (e) {
+      // debugPrint('[AnalysisResult] 예상치 못한 에러: $e');
+      setState(() {
+        _errorMessage = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppHeader(
         title: '공고 분석 결과',
         showBackButton: true,
-        onBack: onBack ?? () => Navigator.of(context).maybePop(),
+        onBack: widget.onBack ?? () => Navigator.of(context).maybePop(),
       ),
-      body: SingleChildScrollView(
+      // [ADDED] 로딩 / 에러 / 성공 상태 분기
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+          : _errorMessage != null
+          ? Center(
+        child: Text(
+          _errorMessage!,
+          style: AppTypography.middle14.copyWith(color: AppColors.gray500),
+          textAlign: TextAlign.center,
+        ),
+      )
+          : SingleChildScrollView(
         padding: const EdgeInsets.all(AppDimensions.screenPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── AI 신뢰도 섹션 ──
-            _TrustScoreCard(data: data),
-
+            _TrustScoreCard(data: _resultData!),
             AppDimensions.verticalGap16,
-
-            // ── 그래서 'OO회사'는? 섹션 ──
             _InfoSection(
-              title: '그래서 \'${data.companyName}\'는?',
-              content: data.companySummary,
+              title: '그래서 \'${_resultData!.companyName}\'는?',
+              content: _resultData!.companySummary,
             ),
-
             AppDimensions.verticalGap16,
-
-            // ── 국가 기반 검증 섹션 ──
             _InfoSection(
               title: '국가 기반 검증',
-              content: data.countryVerification,
+              content: _resultData!.countryVerification,
             ),
-
             AppDimensions.verticalGap16,
-
-            // ── 신고 이력 섹션 ──
             _InfoSection(
               title: '신고 이력',
-              content: data.reportHistory,
+              content: _resultData!.reportHistory,
             ),
-
             SizedBox(height: AppDimensions.navigatorBarHeight),
           ],
         ),

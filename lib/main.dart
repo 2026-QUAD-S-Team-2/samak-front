@@ -5,21 +5,16 @@ import 'core/design_system/app_text_styles.dart';
 import 'core/design_system/app_colors.dart';
 import 'screens/home.dart';
 import 'screens/analysis_list.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'screens/login_screen.dart';
+import 'screens/loading_screen.dart';
+import 'screens/profile_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  const storage = FlutterSecureStorage();
-  final String? token = await storage.read(key: 'auth_token');
-
-  runApp(SamakFEApp(isLoggedIn: token != null));
+  runApp(const SamakFEApp());
 }
 
 class SamakFEApp extends StatelessWidget {
-  final bool isLoggedIn;
-  const SamakFEApp({super.key, required this.isLoggedIn});
+  const SamakFEApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -27,11 +22,18 @@ class SamakFEApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'SamakFE',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
+        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
         useMaterial3: true,
+        snackBarTheme: SnackBarThemeData(
+          backgroundColor: AppColors.gray900,
+          contentTextStyle: AppTypography.middle14.copyWith(color: Colors.white),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
       ),
-      // [ADDED] 토큰 유무에 따라 첫 화면 분기
-      home: isLoggedIn ? MainScreen() : LoginScreen(),
+      home: const LoadingScreen(),
     );
   }
 }
@@ -46,13 +48,16 @@ class _MainScreenState extends State<MainScreen> {
 
   List<Widget> _buildScreens() {
     return [
-      const HomeScreen(),
+      HomeScreen(
+        onProfileTap: () => setState(() => _selectedIndex = 4),
+      ),
       _PlaceholderScreen(title: '소식'),
       AnalysisListScreen(
+        key: ValueKey(_selectedIndex),
         onBackToHome: () => setState(() => _selectedIndex = 0),
       ),
       _PlaceholderScreen(title: '게시판'),
-      _PlaceholderScreen(title: '프로필'),
+      const ProfileScreen(),
     ];
   }
 
@@ -66,8 +71,7 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final bool showAppBar = _selectedIndex != 0 && _selectedIndex != 2;
-
+    final bool showAppBar = _selectedIndex != 0 && _selectedIndex != 2 && _selectedIndex != 4;
     return Scaffold(
       appBar: showAppBar ? AppHeader(title: _titles[_selectedIndex]) : null,
       body: _buildScreens()[_selectedIndex],
