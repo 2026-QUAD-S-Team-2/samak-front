@@ -576,11 +576,16 @@ class _QuizSectionState extends State<_QuizSection> {
   // 답변 제출 후 결과 상태
   QuizAnswerModel? _answerResult;
   bool _isSubmitting = false;
+  bool? _userAnswer;
 
   // O/X 버튼 탭 → 답변 제출
+  // 선택한 답변 저장 추가
   Future<void> _submitAnswer(bool answer) async {
     if (_isSubmitting || widget.quiz == null) return;
-    setState(() => _isSubmitting = true);
+    setState(() {
+      _isSubmitting = true;
+      _userAnswer = answer;
+    });
     try {
       final result = await QuizRepository.instance.submitAnswer(answer);
       setState(() => _answerResult = result);
@@ -603,6 +608,9 @@ class _QuizSectionState extends State<_QuizSection> {
     final bool isSolved  = quiz?.isSolved == true || _answerResult != null;
     final bool isCorrect = _answerResult?.isCorrect ?? quiz?.isCorrect ?? false;
     final String explanation = _answerResult?.explanation ?? '';
+    // 정답값 — 방금 제출했으면 correctAnswer, 이미 풀었으면 quiz.answer
+    final bool? correctAnswer = _answerResult?.correctAnswer ??
+        (quiz?.isSolved == true ? quiz?.answer : null);
 
     return Container(
       margin: AppDimensions.screenEdgePadding,
@@ -697,16 +705,19 @@ class _QuizSectionState extends State<_QuizSection> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: isCorrect
-                          ? AppColors.info
-                          : AppColors.gray200,
+                      color: AppColors.surfacePrimary,
                       borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isCorrect ? AppColors.success : AppColors.error,
+                        width: 1,
+                      )
                     ),
                     child: Text(
                       explanation,
                       style: AppTypography.small12.copyWith(
-                        color: isCorrect ? AppColors.success : AppColors.error,
+                        color: AppColors.textSecondary,
                         height: 1.5,
+                        letterSpacing: -0.2
                       ),
                     ),
                   ),
@@ -722,10 +733,12 @@ class _QuizSectionState extends State<_QuizSection> {
                         onTap: isSolved ? null : () => _submitAnswer(false),
                         child: _QuizButton(
                           label: 'X',
-                          state: isSolved
-                              ? (quiz?.answer == false || _answerResult?.correctAnswer == false
+                          state: !isSolved
+                              ? _QuizButtonState.idle
+                              : correctAnswer == false
                               ? _QuizButtonState.correct
-                              : _QuizButtonState.wrong)
+                              : _userAnswer == false
+                              ? _QuizButtonState.wrong
                               : _QuizButtonState.idle,
                         ),
                       ),
@@ -737,10 +750,12 @@ class _QuizSectionState extends State<_QuizSection> {
                         onTap: isSolved ? null : () => _submitAnswer(true),
                         child: _QuizButton(
                           label: 'O',
-                          state: isSolved
-                              ? (quiz?.answer == true || _answerResult?.correctAnswer == true
+                          state: !isSolved
+                              ? _QuizButtonState.idle
+                              : correctAnswer == true
                               ? _QuizButtonState.correct
-                              : _QuizButtonState.wrong)
+                              : _userAnswer == true
+                              ? _QuizButtonState.wrong
                               : _QuizButtonState.idle,
                         ),
                       ),
@@ -782,12 +797,12 @@ class _QuizButton extends StatelessWidget {
     final Color bgColor = switch (state) {
       _QuizButtonState.idle    => label == 'O' ? AppColors.info : AppColors.gray200,
       _QuizButtonState.correct => AppColors.success,
-      _QuizButtonState.wrong   => AppColors.gray300,
+      _QuizButtonState.wrong   => AppColors.error,
     };
     final Color textColor = switch (state) {
       _QuizButtonState.idle    => label == 'O' ? Colors.white : AppColors.gray500,
       _QuizButtonState.correct => Colors.white,
-      _QuizButtonState.wrong   => AppColors.gray500,
+      _QuizButtonState.wrong   => Colors.white,
     };
 
     return Container(
