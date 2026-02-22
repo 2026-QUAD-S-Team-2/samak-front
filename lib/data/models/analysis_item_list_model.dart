@@ -1,10 +1,24 @@
 // AnalysisItemListResponse
+// 분석 상태 enum
+enum AnalysisStatus { pending, processing, completed, failed }
+
+// 문자열 → enum 변환 헬퍼
+AnalysisStatus _parseStatus(String? status) {
+  switch (status) {
+    case 'PROCESSING': return AnalysisStatus.processing;
+    case 'COMPLETED':  return AnalysisStatus.completed;
+    case 'FAILED':     return AnalysisStatus.failed;
+    default:           return AnalysisStatus.pending;
+  }
+}
+
 class AnalysisItemListModel {
   final int id;
   final String companyName;
   final String countryCode;
   final DateTime createdAt;
   final int score;
+  final AnalysisStatus status;
 
   const AnalysisItemListModel({
     required this.id,
@@ -12,6 +26,7 @@ class AnalysisItemListModel {
     required this.countryCode,
     required this.createdAt,
     required this.score,
+    required this.status,
   });
 
   factory AnalysisItemListModel.fromJson(Map<String, dynamic> json) {
@@ -24,6 +39,7 @@ class AnalysisItemListModel {
       countryCode: json['countryCode'] as String,
       createdAt:   DateTime.parse(json['createdAt'] as String),
       score:       (json['score'] as num).toInt(),
+      status:      _parseStatus(json['status'] as String?),
     );
   }
 }

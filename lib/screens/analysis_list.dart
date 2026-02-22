@@ -276,6 +276,24 @@ class _AnalysisItemCard extends StatelessWidget {
 
   bool get _isHighTrust => (100- item.score) >= _trustHighlightThreshold;
 
+  Color _statusColor(AnalysisStatus status) {
+    switch (status) {
+      case AnalysisStatus.pending:    return AppColors.gray500;
+      case AnalysisStatus.processing: return AppColors.warning;
+      case AnalysisStatus.completed:  return AppColors.success;
+      case AnalysisStatus.failed:     return AppColors.error;
+    }
+  }
+
+  String _statusLabel(AnalysisStatus status) {
+    switch (status) {
+      case AnalysisStatus.pending:    return '대기 중';
+      case AnalysisStatus.processing: return '분석 중';
+      case AnalysisStatus.completed:  return '분석 완료';
+      case AnalysisStatus.failed:     return '분석 실패';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // createdAt → 'YYYY.MM.DD' 포맷 변환
@@ -283,17 +301,17 @@ class _AnalysisItemCard extends StatelessWidget {
         '${item.createdAt.year}.${item.createdAt.month.toString().padLeft(2, '0')}.${item.createdAt.day.toString().padLeft(2, '0')}';
 
     return GestureDetector(
-      onTap: () {
+      onTap: item.status == AnalysisStatus.completed ? () {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (_) => AnalysisResultScreen(
               onBack: () => Navigator.of(context).pop(),
-              analysisItemId: item.id,// r
+              analysisItemId: item.id,
               // resultData 제거 → analysisItemId 전달
             ),
           ),
         );
-      },
+      } : null,
       child: Container(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
         decoration: BoxDecoration(
@@ -311,6 +329,19 @@ class _AnalysisItemCard extends StatelessWidget {
                   style: AppTypography.largeBold16.copyWith(letterSpacing: -0.5),
                 ),
                 const Spacer(),
+                // 상태 뱃지
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: _statusColor(item.status),
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                  child: Text(
+                    _statusLabel(item.status),
+                    style: AppTypography.small12.copyWith(color: Colors.white),
+                  ),
+                ),
+                const SizedBox(width: 10,),
                 if (_isHighTrust) ...[
                   const Icon(Icons.check_circle, color: AppColors.info, size: 16),
                   const SizedBox(width: 4),

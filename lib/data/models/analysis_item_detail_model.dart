@@ -1,4 +1,6 @@
 // AnalysisItemDetailResponse
+import 'analysis_item_list_model.dart';
+
 class AnalysisItemDetailModel {
   final int id;
   final String sourceUrl;
@@ -7,6 +9,7 @@ class AnalysisItemDetailModel {
   final String contactType;
   final String companyName;
   final int salary;
+  final AnalysisStatus status;
   final DateTime createdAt;
 
   const AnalysisItemDetailModel({
@@ -17,6 +20,7 @@ class AnalysisItemDetailModel {
     required this.contactType,
     required this.companyName,
     required this.salary,
+    required this.status,
     required this.createdAt,
   });
 
@@ -29,6 +33,14 @@ class AnalysisItemDetailModel {
       contactType: json['contactType'] as String,
       companyName: json['companyName'] as String,
       salary:      json['salary']      as int,
+      status: () {
+        switch (json['status'] as String?) {
+          case 'PROCESSING': return AnalysisStatus.processing;
+          case 'COMPLETED':  return AnalysisStatus.completed;
+          case 'FAILED':     return AnalysisStatus.failed;
+          default:           return AnalysisStatus.pending;
+        }
+      }(),
       createdAt:   DateTime.parse(json['createdAt'] as String),
     );
   }

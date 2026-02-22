@@ -5,8 +5,6 @@ import 'core/design_system/app_text_styles.dart';
 import 'core/design_system/app_colors.dart';
 import 'screens/home.dart';
 import 'screens/analysis_list.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'screens/login_screen.dart';
 import 'screens/loading_screen.dart';
 import 'screens/profile_screen.dart';
 

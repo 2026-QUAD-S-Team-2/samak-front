@@ -176,7 +176,7 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
           contactType: _channelContactTypeMap[_selectedChannel]!,
           sourceUrl:   _linkController.text.trim(),
           notes:       _etcController.text.trim(),
-          salary:      salary,
+          salary:      double.parse(_salaryController.text),
         ),
       );
 

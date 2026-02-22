@@ -9,7 +9,6 @@ import 'package:samak_fe/core/design_system/app_icons.dart';
 import '../core/design_system/app_colors.dart';
 import '../main.dart';
 import '../core/design_system/widgets/app_dialog.dart';
-import '../core/design_system/app_text_styles.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

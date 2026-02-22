@@ -7,7 +7,7 @@ class AnalysisItemCreateRequest {
   final String contactType;
   final String sourceUrl;
   final String notes;
-  final int salary;
+  final double salary;
 
   const AnalysisItemCreateRequest({
     required this.imageNames,

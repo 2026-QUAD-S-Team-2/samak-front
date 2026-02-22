@@ -5,7 +5,6 @@ import '../core/design_system/app_dimensions.dart';
 import '../core/design_system/app_text_styles.dart';
 import '../core/design_system/app_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'profile_screen.dart';
 // API 연동
 import '../data/repositories/member_repository.dart';
 import '../data/repositories/quiz_repository.dart';

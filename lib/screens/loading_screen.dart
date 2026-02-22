@@ -3,7 +3,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../core/design_system/app_icons.dart';
 import '../core/design_system/app_colors.dart';
-import '../main.dart';
 import 'login_screen.dart';
 
 class LoadingScreen extends StatefulWidget {
