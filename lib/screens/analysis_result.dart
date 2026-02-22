@@ -8,6 +8,7 @@ import '../core/design_system/app_icons.dart';
 // API 연동
 import '../data/repositories/analysis_repository.dart';
 import '../data/models/ai_analysis_result_model.dart';
+import '../data/models/analysis_item_list_model.dart';
 import '../core/network/api_exception.dart';
 
 // 분석 결과 데이터 모델
@@ -51,6 +52,8 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
   bool _isLoading = true;
   String? _errorMessage;
   AnalysisResultData? _resultData;
+  static const Duration _pollInterval = Duration(seconds: 3);
+  static const int _maxPollCount = 20; // 최대 60초 대기
 
   @override
   void initState() {
@@ -62,51 +65,78 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
   Future<void> _loadResult() async {
     try {
       final id = widget.analysisItemId;
-      // [ADDED]
-      debugPrint('[AnalysisResult] 로드 시작 - analysisItemId: $id');
+      // debugPrint('[AnalysisResult] 로드 시작 - analysisItemId: $id');
 
-      final results = await Future.wait([
-        AnalysisRepository.instance.getDetail(id),
-        AnalysisRepository.instance.getAiAnalysis(id),
-        AnalysisRepository.instance.getCountryWarning(id),
-      ]);
+      // [ADDED] COMPLETED 상태가 될 때까지 폴링
+      int pollCount = 0;
+      while (true) {
+        final detail = await AnalysisRepository.instance.getDetail(id);
+        // debugPrint('[AnalysisResult] status: ${detail.status}, pollCount: $pollCount');
 
-      final detail    = results[0] as dynamic;
-      final aiResult  = results[1] as AiAnalysisResultModel;
-      final warning   = results[2] as dynamic;
+        if (detail.status == AnalysisStatus.completed) {
+          // COMPLETED → AI 분석 결과 + 국가 경고 조회
+          final results = await Future.wait([
+            AnalysisRepository.instance.getAiAnalysis(id),
+            AnalysisRepository.instance.getCountryWarning(id),
+          ]);
 
-      // [ADDED]
-      debugPrint('[AnalysisResult] detail: ${detail}');
-      debugPrint('[AnalysisResult] aiResult: riskScore=${aiResult.riskScore}, riskLevel=${aiResult.riskLevel}, message=${aiResult.message}');
-      debugPrint('[AnalysisResult] warning: ${warning.warningMessage}');
+          final aiResult = results[0] as AiAnalysisResultModel;
+          final warning  = results[1] as dynamic;
 
-      final trustLevel = switch (aiResult.riskLevel.toUpperCase()) {
-        'LOW'    => TrustLevel.good,
-        'MEDIUM' => TrustLevel.normal,
-        _        => TrustLevel.bad,
-      };
+          // debugPrint('[AnalysisResult] aiResult: riskScore=${aiResult.riskScore}, riskLevel=${aiResult.riskLevel}');
+          // debugPrint('[AnalysisResult] warning: ${warning.warningMessage}');
 
-      setState(() {
-        _resultData = AnalysisResultData(
-          companyName:         detail.companyName as String,
-          trustScore:          100 - aiResult.riskScore,
-          trustLevel:          trustLevel,
-          companySummary:      aiResult.message,
-          countryVerification: warning.warningMessage as String,
-          reportHistory:       '신고 이력 데이터를 불러왔습니다.',
-        );
-        _isLoading = false;
-      });
+          final trustLevel = switch (aiResult.riskLevel.toUpperCase()) {
+            'LOW'    => TrustLevel.good,
+            'MEDIUM' => TrustLevel.normal,
+            _        => TrustLevel.bad,
+          };
+
+          setState(() {
+            _resultData = AnalysisResultData(
+              companyName:         detail.companyName as String,
+              trustScore:          100 - aiResult.riskScore,
+              trustLevel:          trustLevel,
+              companySummary:      aiResult.message,
+              countryVerification: warning.warningMessage as String,
+              reportHistory:       '신고 이력 데이터를 불러왔습니다.',
+            );
+            _isLoading = false;
+          });
+          return;
+
+        } else if (detail.status == AnalysisStatus.failed) {
+          // [ADDED] 분석 실패 처리
+          // debugPrint('[AnalysisResult] 분석 실패');
+          setState(() {
+            _errorMessage = '분석에 실패했습니다. 다시 시도해 주세요.';
+            _isLoading = false;
+          });
+          return;
+
+        } else if (pollCount >= _maxPollCount) {
+          // [ADDED] 최대 대기 시간 초과
+          // debugPrint('[AnalysisResult] 폴링 타임아웃');
+          setState(() {
+            _errorMessage = '분석에 시간이 오래 걸리고 있습니다. 잠시 후 다시 확인해 주세요.';
+            _isLoading = false;
+          });
+          return;
+        }
+
+        // [ADDED] PENDING/PROCESSING → 대기 후 재시도
+        pollCount++;
+        await Future.delayed(_pollInterval);
+      }
+
     } on ApiException catch (e) {
-      // [ADDED]
-      debugPrint('[AnalysisResult] ApiException: ${e.message}');
+      // debugPrint('[AnalysisResult] ApiException: ${e.message}');
       setState(() {
         _errorMessage = e.message;
         _isLoading = false;
       });
     } catch (e) {
-      // [ADDED] ApiException 외 예외 처리 — 없으면 로딩이 영원히 해제되지 않음
-      debugPrint('[AnalysisResult] 예상치 못한 에러: $e');
+      // debugPrint('[AnalysisResult] 예상치 못한 에러: $e');
       setState(() {
         _errorMessage = e.toString();
         _isLoading = false;
