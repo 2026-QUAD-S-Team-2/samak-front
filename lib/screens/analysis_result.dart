@@ -62,38 +62,53 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
   Future<void> _loadResult() async {
     try {
       final id = widget.analysisItemId;
+      // [ADDED]
+      debugPrint('[AnalysisResult] 로드 시작 - analysisItemId: $id');
+
       final results = await Future.wait([
         AnalysisRepository.instance.getDetail(id),
         AnalysisRepository.instance.getAiAnalysis(id),
         AnalysisRepository.instance.getCountryWarning(id),
       ]);
 
-      final detail    = results[0] as dynamic; // AnalysisItemDetailModel
+      final detail    = results[0] as dynamic;
       final aiResult  = results[1] as AiAnalysisResultModel;
-      final warning   = results[2] as dynamic; // CountryWarningModel
+      final warning   = results[2] as dynamic;
 
-      // riskLevel → TrustLevel 변환
+      // [ADDED]
+      debugPrint('[AnalysisResult] detail: ${detail}');
+      debugPrint('[AnalysisResult] aiResult: riskScore=${aiResult.riskScore}, riskLevel=${aiResult.riskLevel}, message=${aiResult.message}');
+      debugPrint('[AnalysisResult] warning: ${warning.warningMessage}');
+
       final trustLevel = switch (aiResult.riskLevel.toUpperCase()) {
         'LOW'    => TrustLevel.good,
         'MEDIUM' => TrustLevel.normal,
-        _        => TrustLevel.bad,   // HIGH
+        _        => TrustLevel.bad,
       };
 
       setState(() {
         _resultData = AnalysisResultData(
           companyName:         detail.companyName as String,
-          trustScore:          100- aiResult.riskScore,
+          trustScore:          100 - aiResult.riskScore,
           trustLevel:          trustLevel,
           companySummary:      aiResult.message,
           countryVerification: warning.warningMessage as String,
           reportHistory:       '신고 이력 데이터를 불러왔습니다.',
-          // TODO: 신고 이력 API 연동 시 교체
         );
         _isLoading = false;
       });
     } on ApiException catch (e) {
+      // [ADDED]
+      debugPrint('[AnalysisResult] ApiException: ${e.message}');
       setState(() {
         _errorMessage = e.message;
+        _isLoading = false;
+      });
+    } catch (e) {
+      // [ADDED] ApiException 외 예외 처리 — 없으면 로딩이 영원히 해제되지 않음
+      debugPrint('[AnalysisResult] 예상치 못한 에러: $e');
+      setState(() {
+        _errorMessage = e.toString();
         _isLoading = false;
       });
     }

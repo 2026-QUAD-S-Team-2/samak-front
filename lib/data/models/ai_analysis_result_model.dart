@@ -12,7 +12,7 @@ class AiAnalysisResultModel {
 
   factory AiAnalysisResultModel.fromJson(Map<String, dynamic> json) {
     return AiAnalysisResultModel(
-      riskScore: json['riskScore'] as int,
+      riskScore: (json['riskScore'] as num).toInt(),
       riskLevel: json['riskLevel'] as String,
       message:   json['message']   as String,
     );

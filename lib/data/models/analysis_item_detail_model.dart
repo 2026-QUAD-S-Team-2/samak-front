@@ -8,7 +8,7 @@ class AnalysisItemDetailModel {
   final int regionId;
   final String contactType;
   final String companyName;
-  final int salary;
+  final double salary;
   final AnalysisStatus status;
   final DateTime createdAt;
 
@@ -32,7 +32,7 @@ class AnalysisItemDetailModel {
       regionId:    json['regionId']    as int,
       contactType: json['contactType'] as String,
       companyName: json['companyName'] as String,
-      salary:      json['salary']      as int,
+      salary:      (json['salary'] as num).toDouble(),
       status: () {
         switch (json['status'] as String?) {
           case 'PROCESSING': return AnalysisStatus.processing;
