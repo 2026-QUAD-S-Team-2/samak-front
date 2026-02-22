@@ -333,11 +333,11 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
               const SizedBox(height: 20),
 
               // ── 제안 임금 ──
-              const _SectionLabel(label: '제안 임금', isRequired: false),
+              const _SectionLabel(label: '제안 연봉', isRequired: false),
               const SizedBox(height: 8),
               _OutlinedTextField(
                 controller: _salaryController,
-                hintText: '시급을 입력해 주세요',
+                hintText: '연봉을 입력해 주세요',
               ),
 
               const SizedBox(height: 20),
