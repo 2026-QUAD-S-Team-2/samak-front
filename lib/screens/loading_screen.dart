@@ -42,27 +42,22 @@ class _LoadingScreenState extends State<LoadingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.primary,
-      body: Stack(
-        children: [
-          Center(
-          child: SvgPicture.asset(
-            AppIcons.title2,
-            width: 391,
-            height: 87,
-          ),
-        ),
-        const Positioned(
-          bottom: 80,
-          left: 0,
-          right: 0,
-          child: Center(
-            child: CircularProgressIndicator(
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SvgPicture.asset(
+              AppIcons.title2,
+              width: 391,
+              height: 87,
+            ),
+            const SizedBox(height: 32),
+            const CircularProgressIndicator(
               color: Colors.white,
               strokeWidth: 2.5,
             ),
-          ),
+          ],
         ),
-        ]
       ),
     );
   }
