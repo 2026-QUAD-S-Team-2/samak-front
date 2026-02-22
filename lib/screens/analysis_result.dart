@@ -99,7 +99,7 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
               trustLevel:          trustLevel,
               companySummary:      aiResult.message,
               countryVerification: warning.warningMessage as String,
-              reportHistory:       '신고 이력 데이터를 불러왔습니다.',
+              reportHistory:       '신고 이력이 없습니다.',
             );
             _isLoading = false;
           });
