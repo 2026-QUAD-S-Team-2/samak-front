@@ -4,10 +4,12 @@ import 'package:dio/dio.dart';
 class ApiException implements Exception {
   final String message;
   final int? statusCode;
+  final dynamic rawResponse;
 
   const ApiException({
     required this.message,
     this.statusCode,
+    this.rawResponse
   });
 
   // DioException → ApiException 변환 팩토리
@@ -29,7 +31,7 @@ class ApiException implements Exception {
             : null;
 
         if (serverMessage != null && serverMessage.isNotEmpty) {
-          return ApiException(message: serverMessage, statusCode: statusCode);
+          return ApiException(message: serverMessage, statusCode: statusCode, rawResponse: e.response?.data);
         }
 
         switch (statusCode) {
@@ -55,5 +57,5 @@ class ApiException implements Exception {
   }
 
   @override
-  String toString() => 'ApiException(statusCode: $statusCode, message: $message)';
+  String toString() => 'ApiException(statusCode: $statusCode, message: $message, rawResponse: $rawResponse)';
 }

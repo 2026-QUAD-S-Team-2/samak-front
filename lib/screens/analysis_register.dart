@@ -1,15 +1,12 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-// import 'package:flutter_svg/flutter_svg.dart';
 import '../core/design_system/app_colors.dart';
 import '../core/design_system/app_dimensions.dart';
 import '../core/design_system/app_text_styles.dart';
 import '../core/design_system/widgets/app_header.dart';
-// import '../core/design_system/app_icons.dart';
 import '../screens/analysis_result.dart';
 import '../core/design_system/widgets/app_dropdown.dart';
-// API 연동
 import 'package:image_picker/image_picker.dart';
 import '../data/repositories/country_repository.dart';
 import '../data/repositories/analysis_repository.dart';
@@ -29,7 +26,7 @@ class AnalysisRegisterScreen extends StatefulWidget {
     super.key,
     this.onBack,
     this.onConfirmResult,
-    this.onGoToList
+    this.onGoToList,
   });
 
   @override
@@ -55,9 +52,9 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
   String? _selectedChannel;
 
   static const Map<String, String> _channelContactTypeMap = {
-    '이메일':    'EMAIL',
-    '텔레그램':  'TELEGRAM',
-    '전화':      'PHONE',
+    '이메일':   'EMAIL',
+    '텔레그램': 'TELEGRAM',
+    '전화':     'PHONE',
   };
   final List<String> _channels = _channelContactTypeMap.keys.toList();
 
@@ -123,19 +120,21 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
     if (_pickedImages.length >= 4) return;
     final XFile? image = await _imagePicker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 85,
+      imageQuality: 50,
+      maxWidth: 1280,
+      maxHeight: 1280,
     );
     if (image != null) {
       setState(() => _pickedImages.add(image));
     }
   }
 
-// 이미지 제거
+  // 이미지 제거
   void _removeImage(int index) {
     setState(() => _pickedImages.removeAt(index));
   }
 
-// 등록 실행 — 유효성 검사 → 이미지 업로드 → 분석 아이템 등록
+  // 등록 실행 — 유효성 검사 → 이미지 업로드 → 분석 아이템 등록
   Future<void> _submit() async {
     if (_pickedImages.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -167,11 +166,30 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
 
     setState(() => _isSubmitting = true);
 
+    List<String> imageNames;
     try {
-      final imageNames = await ImageRepository.instance.uploadMultiple(
-        _pickedImages.map((e) => e.path).toList(),
-      );
+      if (_pickedImages.length == 1) {
+        final imageName = await ImageRepository.instance.uploadSingle(
+          _pickedImages.first.path,
+        );
+        imageNames = [imageName];
+      } else {
+        imageNames = await ImageRepository.instance.uploadMultiple(
+          _pickedImages.map((e) => e.path).toList(),
+        );
+      }
+    } on ApiException catch (e) {
+      // debugPrint('[AnalysisRegister] 이미지 업로드 실패 - statusCode: ${e.statusCode}, message: ${e.message}, raw: ${e.rawResponse}');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message)),
+        );
+        setState(() => _isSubmitting = false);
+      }
+      return;
+    }
 
+    try {
       var result = await AnalysisRepository.instance.createItem(
         AnalysisItemCreateRequest(
           imageNames: imageNames,
@@ -189,9 +207,10 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
       int pollCount = 0;
       const int maxPollCount = 20; // 3초 * 20번 = 최대 60초 대기 제한
 
-      while ((result.status == AnalysisStatus.pending || result.status == AnalysisStatus.processing) && pollCount < maxPollCount) {
+      while ((result.status == AnalysisStatus.pending ||
+          result.status == AnalysisStatus.processing) &&
+          pollCount < maxPollCount) {
         await Future.delayed(const Duration(seconds: 3));
-        // 최신 상태 다시 불러오기
         result = await AnalysisRepository.instance.getDetail(result.id);
         pollCount++;
       }
@@ -200,15 +219,13 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
 
       // 최종 상태에 따른 분기 처리
       if (result.status == AnalysisStatus.completed) {
-        // 성공: 결과 화면 이동 바텀 시트 표시
         _showCompletionBottomSheet(result.id);
       } else if (result.status == AnalysisStatus.failed) {
-        // 실패: 에러 메시지
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('분석에 실패했어요. 다시 시도해 주세요.')),
         );
       } else {
-        // 타임 아웃: 계속 로딩 중인 경우 (무한 대기 방지용)
+        // 타임아웃: 최대 대기 횟수 초과
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('분석이 지연되고 있어요. 완료되면 목록에서 확인할 수 있어요.'),
@@ -217,8 +234,8 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
         );
         widget.onGoToList?.call();
       }
-
     } on ApiException catch (e) {
+      debugPrint('[AnalysisRegister] 분석 등록 실패 - statusCode: ${e.statusCode}, message: ${e.message}, raw: ${e.rawResponse}');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.message)),
@@ -242,7 +259,6 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
       builder: (bottomSheetContext) => _CompletionBottomSheet(
         onConfirm: () {
           Navigator.of(bottomSheetContext).pop();
-
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (_) => AnalysisResultScreen(
@@ -287,7 +303,6 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
               ),
               const SizedBox(height: 12),
 
-              // 하드코딩 itemCount: 4 → 선택된 이미지 + 추가 슬롯
               SizedBox(
                 height: 88,
                 child: ListView.separated(
@@ -297,14 +312,12 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
                       : 4,
                   separatorBuilder: (_, __) => const SizedBox(width: 10),
                   itemBuilder: (_, index) {
-                    // [ADDED] 선택된 이미지 표시
                     if (index < _pickedImages.length) {
                       return _ImageSlot(
                         imageFile: _pickedImages[index],
                         onRemove: () => _removeImage(index),
                       );
                     }
-                    // [ADDED] 추가 버튼 슬롯
                     return _ImageSlot(onTap: _pickImage);
                   },
                 ),
@@ -313,7 +326,7 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
               const SizedBox(height: 24),
 
               // ── 채용 공고 링크 ──
-              const _SectionLabel(label: '채용 공고 링크', isRequired: false,),
+              const _SectionLabel(label: '채용 공고 링크'),
               const SizedBox(height: 8),
               _OutlinedTextField(
                 controller: _linkController,
@@ -332,8 +345,8 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
 
               const SizedBox(height: 20),
 
-              // ── 제안 임금 ──
-              const _SectionLabel(label: '제안 연봉', isRequired: false),
+              // ── 제안 연봉 ──
+              const _SectionLabel(label: '제안 연봉'),
               const SizedBox(height: 8),
               _OutlinedTextField(
                 controller: _salaryController,
@@ -352,7 +365,8 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
                 hintText: '국가를 선택해 주세요',
                 items: _countries.map((e) => e.displayName).toList(),
                 onChanged: (name) {
-                  final country = _countries.firstWhere((e) => e.displayName == name);
+                  final country = _countries
+                      .firstWhere((e) => e.displayName == name);
                   setState(() => _selectedCountry = country);
                   _loadCities(country.code);
                 },
@@ -370,7 +384,8 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
                 hintText: '지역을 선택해 주세요',
                 items: _cities.map((e) => e.displayName).toList(),
                 onChanged: (name) {
-                  final city = _cities.firstWhere((e) => e.displayName == name);
+                  final city =
+                  _cities.firstWhere((e) => e.displayName == name);
                   setState(() => _selectedCity = city);
                 },
               ),
@@ -407,7 +422,10 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
       // ── 하단 등록 버튼 ──
       bottomNavigationBar: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppDimensions.screenPadding, vertical: 16),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDimensions.screenPadding,
+            vertical: 16,
+          ),
           child: SizedBox(
             width: double.infinity,
             height: 52,
@@ -415,7 +433,7 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
               onPressed: _isSubmitting ? null : _submit,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
-                disabledBackgroundColor: AppColors.gray300, // [ADDED]
+                disabledBackgroundColor: AppColors.gray300,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(100),
                 ),
@@ -478,7 +496,6 @@ class _ImageSlot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 이미지가 있으면 미리보기 + 삭제 버튼
     if (imageFile != null) {
       return Stack(
         children: [
@@ -511,7 +528,6 @@ class _ImageSlot extends StatelessWidget {
       );
     }
 
-    // 빈 슬롯 — 추가 버튼
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -557,11 +573,10 @@ class _OutlinedTextField extends StatelessWidget {
             offset: const Offset(0, 2),
             blurRadius: 4,
             spreadRadius: 0,
-          )
-        ]
+          ),
+        ],
       ),
       child: TextField(
-        // TODO: 그림자 추가
         controller: controller,
         maxLines: maxLines,
         style: AppTypography.middle14,
@@ -576,7 +591,8 @@ class _OutlinedTextField extends StatelessWidget {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+            borderSide:
+            const BorderSide(color: AppColors.primary, width: 1.5),
           ),
           filled: true,
           fillColor: Colors.white,
@@ -619,7 +635,6 @@ class _CompletionBottomSheet extends StatelessWidget {
             width: double.infinity,
             height: 52,
             child: ElevatedButton(
-              // TODO: onConfirmResult 콜백으로 분석 결과 화면 연결 필요
               onPressed: onConfirm,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
