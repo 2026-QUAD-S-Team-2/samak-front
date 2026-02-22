@@ -53,6 +53,7 @@ class _MainScreenState extends State<MainScreen> {
       ),
       _PlaceholderScreen(title: '소식'),
       AnalysisListScreen(
+        key: ValueKey(_selectedIndex),
         onBackToHome: () => setState(() => _selectedIndex = 0),
       ),
       _PlaceholderScreen(title: '게시판'),

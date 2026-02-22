@@ -38,7 +38,7 @@ class AnalysisItemListModel {
       companyName: companyName,
       countryCode: json['countryCode'] as String,
       createdAt:   DateTime.parse(json['createdAt'] as String),
-      score:       (json['score'] as num).toInt(),
+      score:       (json['score'] as num?)?.toInt() ?? 0,
       status:      _parseStatus(json['status'] as String?),
     );
   }

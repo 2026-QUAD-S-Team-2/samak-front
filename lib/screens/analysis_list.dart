@@ -66,14 +66,20 @@ class _AnalysisListScreenState extends State<AnalysisListScreen> {
   }
 
   // _sampleItems → _items, 클라이언트 정렬은 trustLow만 유지
+  // COMPLETED 아이템만 score 기준 정렬, 나머지는 항상 하단
   List<AnalysisItemListModel> get _filteredAndSortedItems {
     List<AnalysisItemListModel> result = _items
         .where((item) => item.companyName.contains(_searchQuery))
         .toList();
 
-    // trustLow: 서버에서 RISK_SCORE(높은순)로 받아 클라이언트에서 역순
-    if (_sortMode == SortMode.trustLow) {
-      result = result.reversed.toList();
+    if (_sortMode == SortMode.trustHigh || _sortMode == SortMode.trustLow) {
+      var completed = result.where((e) => e.status == AnalysisStatus.completed).toList();
+      final others = result.where((e) => e.status != AnalysisStatus.completed).toList();
+
+      if (_sortMode == SortMode.trustHigh) {
+        completed = completed.reversed.toList();
+      }
+      result = [...completed, ...others];
     }
     return result;
   }
@@ -186,7 +192,7 @@ class _AnalysisListScreenState extends State<AnalysisListScreen> {
             MaterialPageRoute(
               builder: (_) => AnalysisRegisterScreen(
                 onBack: () => Navigator.of(context).pop(),
-                // TODO: onConfirmResult 연결 시 분석 결과 화면으로 이동 구현 필요
+                onGoToList: () => Navigator.of(context).pop(),
               ),
             ),
           );
@@ -342,21 +348,24 @@ class _AnalysisItemCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 10,),
-                if (_isHighTrust) ...[
-                  const Icon(Icons.check_circle, color: AppColors.info, size: 16),
-                  const SizedBox(width: 4),
-                  Text(
-                    '신뢰도 ${100 - item.score}%',
-                    style: AppTypography.small12.copyWith(
-                      color: AppColors.info,
-                      fontWeight: FontWeight.w600,
+                // [MODIFIED] 분석 완료 상태일 때만 신뢰도 표시
+                if (item.status == AnalysisStatus.completed) ...[
+                  if (_isHighTrust) ...[
+                    const Icon(Icons.check_circle, color: AppColors.info, size: 16),
+                    const SizedBox(width: 4),
+                    Text(
+                      '신뢰도 ${100 - item.score}%',
+                      style: AppTypography.small12.copyWith(
+                        color: AppColors.info,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                ] else ...[
-                  Text(
-                    '신뢰도 ${100 - item.score}%',
-                    style: AppTypography.small12.copyWith(color: AppColors.gray500),
-                  ),
+                  ] else ...[
+                    Text(
+                      '신뢰도 ${100 - item.score}%',
+                      style: AppTypography.small12.copyWith(color: AppColors.gray500),
+                    ),
+                  ],
                 ],
               ],
             ),

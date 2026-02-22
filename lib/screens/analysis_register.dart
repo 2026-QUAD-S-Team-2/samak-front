@@ -17,17 +17,19 @@ import '../data/repositories/image_repository.dart';
 import '../data/models/country_model.dart';
 import '../data/models/city_model.dart';
 import '../data/models/analysis_item_create_request.dart';
+import '../data/models/analysis_item_list_model.dart';
 import '../core/network/api_exception.dart';
 
 class AnalysisRegisterScreen extends StatefulWidget {
   final VoidCallback? onBack;
-
   final VoidCallback? onConfirmResult;
+  final VoidCallback? onGoToList;
 
   const AnalysisRegisterScreen({
     super.key,
     this.onBack,
     this.onConfirmResult,
+    this.onGoToList
   });
 
   @override
@@ -46,6 +48,7 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
   List<CityModel> _cities = [];
   bool _isLoadingCountries = false;
   bool _isLoadingCities = false;
+  bool _isSubmitting = false;
 
   CountryModel? _selectedCountry;
   CityModel? _selectedCity;
@@ -134,7 +137,6 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
 
 // 등록 실행 — 유효성 검사 → 이미지 업로드 → 분석 아이템 등록
   Future<void> _submit() async {
-    // 필수값 검사
     if (_pickedImages.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('이미지를 1장 이상 첨부해 주세요.')),
@@ -142,7 +144,6 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
       return;
     }
     if (_companyController.text.trim().isEmpty ||
-        _salaryController.text.trim().isEmpty ||
         _selectedCountry == null ||
         _selectedCity == null ||
         _selectedChannel == null) {
@@ -152,41 +153,79 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
       return;
     }
 
-    final salary = int.tryParse(_salaryController.text.trim());
-    if (salary == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('제안 임금은 숫자로 입력해 주세요.')),
-      );
-      return;
+    final salaryText = _salaryController.text.trim();
+    double? salary;
+    if (salaryText.isNotEmpty) {
+      salary = double.tryParse(salaryText);
+      if (salary == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('제안 임금은 숫자로 입력해 주세요.')),
+        );
+        return;
+      }
     }
 
+    setState(() => _isSubmitting = true);
+
     try {
-      // 이미지 업로드
       final imageNames = await ImageRepository.instance.uploadMultiple(
         _pickedImages.map((e) => e.path).toList(),
       );
 
-      // 분석 아이템 등록
-      final result = await AnalysisRepository.instance.createItem(
+      var result = await AnalysisRepository.instance.createItem(
         AnalysisItemCreateRequest(
-          imageNames:  imageNames,
+          imageNames: imageNames,
           companyName: _companyController.text.trim(),
           countryCode: _selectedCountry!.code,
-          cityId:      _selectedCity!.id,
+          cityId: _selectedCity!.id,
           contactType: _channelContactTypeMap[_selectedChannel]!,
-          sourceUrl:   _linkController.text.trim(),
-          notes:       _etcController.text.trim(),
-          salary:      double.parse(_salaryController.text),
+          sourceUrl: _linkController.text.trim(),
+          notes: _etcController.text.trim(),
+          salary: salary ?? 0,
         ),
       );
 
-      if (mounted) _showCompletionBottomSheet(result.id);
+      // 상태가 COMPLETED가 될 때까지 API 폴링(대기)
+      int pollCount = 0;
+      const int maxPollCount = 20; // 3초 * 20번 = 최대 60초 대기 제한
+
+      while ((result.status == AnalysisStatus.pending || result.status == AnalysisStatus.processing) && pollCount < maxPollCount) {
+        await Future.delayed(const Duration(seconds: 3));
+        // 최신 상태 다시 불러오기
+        result = await AnalysisRepository.instance.getDetail(result.id);
+        pollCount++;
+      }
+
+      if (!mounted) return;
+
+      // 최종 상태에 따른 분기 처리
+      if (result.status == AnalysisStatus.completed) {
+        // 성공: 결과 화면 이동 바텀 시트 표시
+        _showCompletionBottomSheet(result.id);
+      } else if (result.status == AnalysisStatus.failed) {
+        // 실패: 에러 메시지
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('분석에 실패했어요. 다시 시도해 주세요.')),
+        );
+      } else {
+        // 타임 아웃: 계속 로딩 중인 경우 (무한 대기 방지용)
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('분석이 지연되고 있어요. 완료되면 목록에서 확인할 수 있어요.'),
+            duration: Duration(seconds: 4),
+          ),
+        );
+        widget.onGoToList?.call();
+      }
+
     } on ApiException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.message)),
         );
       }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
@@ -200,13 +239,13 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
       ),
       isDismissible: false,
       enableDrag: false,
-      builder: (_) => _CompletionBottomSheet(
+      builder: (bottomSheetContext) => _CompletionBottomSheet(
         onConfirm: () {
-          Navigator.of(context).pop();
-          Navigator.of(context).push(
+          Navigator.of(bottomSheetContext).pop();
+
+          Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (_) => AnalysisResultScreen(
-                onBack: () => Navigator.of(context).pop(),
                 analysisItemId: analysisItemId,
               ),
             ),
@@ -274,7 +313,7 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
               const SizedBox(height: 24),
 
               // ── 채용 공고 링크 ──
-              const _SectionLabel(label: '채용 공고 링크'),
+              const _SectionLabel(label: '채용 공고 링크', isRequired: false,),
               const SizedBox(height: 8),
               _OutlinedTextField(
                 controller: _linkController,
@@ -373,15 +412,25 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
             width: double.infinity,
             height: 52,
             child: ElevatedButton(
-              onPressed: _submit,
+              onPressed: _isSubmitting ? null : _submit,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
+                disabledBackgroundColor: AppColors.gray300, // [ADDED]
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(100),
                 ),
                 elevation: 0,
               ),
-              child: Text(
+              child: _isSubmitting
+                  ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              )
+                  : Text(
                 '공고 등록하기',
                 style: AppTypography.large16.copyWith(color: Colors.white),
               ),
