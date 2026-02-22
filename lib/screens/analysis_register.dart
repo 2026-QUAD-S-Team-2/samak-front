@@ -309,11 +309,11 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
               _isLoadingCountries
                   ? const CircularProgressIndicator()
                   : AppDropdown(
-                value: _selectedCountry?.name,
+                value: _selectedCountry?.displayName,
                 hintText: '국가를 선택해 주세요',
-                items: _countries.map((e) => e.name).toList(),
+                items: _countries.map((e) => e.displayName).toList(),
                 onChanged: (name) {
-                  final country = _countries.firstWhere((e) => e.name == name);
+                  final country = _countries.firstWhere((e) => e.displayName == name);
                   setState(() => _selectedCountry = country);
                   _loadCities(country.code);
                 },
@@ -327,11 +327,11 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
               _isLoadingCities
                   ? const CircularProgressIndicator()
                   : AppDropdown(
-                value: _selectedCity?.name,
+                value: _selectedCity?.displayName,
                 hintText: '지역을 선택해 주세요',
-                items: _cities.map((e) => e.name).toList(),
+                items: _cities.map((e) => e.displayName).toList(),
                 onChanged: (name) {
-                  final city = _cities.firstWhere((e) => e.name == name);
+                  final city = _cities.firstWhere((e) => e.displayName == name);
                   setState(() => _selectedCity = city);
                 },
               ),
