@@ -94,9 +94,9 @@ class _HomeScreenState extends State<HomeScreen> {
               child: _BannerCard(newsList: _newsList,),
             ),
             AppDimensions.verticalGap24,
-            _AnnouncementSection(),
+            _QuizSection(quiz: _quiz),
             AppDimensions.verticalGap24,
-            _QuizSection(quiz: _quiz),  // quiz 전달
+            _AnnouncementSection(),
             AppDimensions.verticalGap24,
           ],
         ),
