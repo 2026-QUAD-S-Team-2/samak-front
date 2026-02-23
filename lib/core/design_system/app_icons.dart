@@ -14,6 +14,7 @@ class AppIcons {
   static const String chatDotsFilled = '$_basePath/ic_chat-dots_filled.svg';
   static const String clock = '$_basePath/ic_clock.svg';
   static const String creditCard = '$_basePath/ic_credit-card.svg';
+  static const String defaultProfile = '$_basePath/ic_default-profile.svg';
   static const String eye = '$_basePath/ic_eye.svg';
   static const String goodFace = '$_basePath/ic_good-face.svg';
   static const String heart = '$_basePath/ic_heart.svg';

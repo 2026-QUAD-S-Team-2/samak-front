@@ -120,12 +120,31 @@ class _ProfileSection extends StatelessWidget {
         children: [
           GestureDetector(
             onTap: onProfileTap,
-            child: CircleAvatar(
-              radius: 24,
-              backgroundImage: member?.profileImageUrl != null
-                  ? NetworkImage(member!.profileImageUrl!)
-                  : null,
-              backgroundColor: AppColors.gray900,
+            child: ClipOval(
+              child: SizedBox(
+                width: 48,
+                height: 48,
+                child: (member?.profileImageUrl != null &&
+                    member!.profileImageUrl!.isNotEmpty)
+                    ? Image.network(
+                  member!.profileImageUrl!,
+                  width: 48,
+                  height: 48,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => SvgPicture.asset(
+                    AppIcons.defaultProfile,
+                    width: 48,
+                    height: 48,
+                    fit: BoxFit.cover,
+                  ),
+                )
+                    : SvgPicture.asset(
+                  AppIcons.defaultProfile,
+                  width: 48,
+                  height: 48,
+                  fit: BoxFit.cover,
+                ),
+              ),
             ),
           ),
           const SizedBox(width: 12),
