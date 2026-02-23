@@ -1,6 +1,6 @@
 // CountryListResponse
 // 국가 코드 → 한국어 이름 매핑 테이블
-const Map<String, String> _countryKoreanNames = {
+const Map<String, String> countryKoreanNames = {
   'KR': '대한민국',
   'US': '미국',
   'VN': '베트남',
@@ -26,5 +26,8 @@ class CountryModel {
   }
 
   // 한국어 이름 반환
-  String get displayName => _countryKoreanNames[code] ?? name;
+  String get displayName => countryKoreanNames[code] ?? name;
+
+  // 코드만으로 한국어 이름 조회하는 메서드
+  static String nameFromCode(String code) => countryKoreanNames[code] ?? code;
 }
