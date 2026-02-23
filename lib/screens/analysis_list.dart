@@ -421,7 +421,7 @@ class _InfoColumn extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           value,
-          style: AppTypography.large16.copyWith(letterSpacing: -0.3),
+          style: AppTypography.middle14.copyWith(letterSpacing: -0.3, color: AppColors.textSecondary),
         ),
       ],
     );
