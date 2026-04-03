@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_svg/svg.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:google_sign_in_web/web_only.dart' as web;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:samak_fe/core/design_system/app_text_styles.dart';
 import 'package:samak_fe/core/network/dio_client.dart';
@@ -18,34 +20,66 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   bool _isLoading = false;
 
-  Future<void> _handleGoogleLogin() async {
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeGoogleSignIn();
+  }
+
+  Future<void> _initializeGoogleSignIn() async {
+    await _googleSignIn.initialize(
+      clientId: '813032635406-1snutrhgcd2h7518ncc407jmha2dqh6b.apps.googleusercontent.com',
+      serverClientId: kIsWeb ? null : '813032635406-c9l4qiv9lijsfjpovhvu1k9ggfnohg4d.apps.googleusercontent.com',
+    );
+
+    _googleSignIn.authenticationEvents.listen((GoogleSignInAuthenticationEvent event) async {
+      if (event is GoogleSignInAuthenticationEventSignIn) {
+        final GoogleSignInAccount? account = event.user;
+        if (account != null) {
+          await _handleBackendLogin(account);
+        }
+      }
+    });
+  }
+
+  // ── 모바일용 커스텀 버튼 클릭 이벤트 ──
+  Future<void> _handleMobileGoogleLogin() async {
+    setState(() => _isLoading = true);
+    try {
+      final GoogleSignInAccount account = await _googleSignIn.authenticate();
+
+      if (!kIsWeb) {
+        await _handleBackendLogin(account);
+      }
+    } catch (e) {
+      if (mounted) {
+        AppDialog.show(context, title: '로그인 오류', message: '로그인을 취소했거나 실패했습니다.');
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  // ── 구글 토큰 획득 후 백엔드(Dio) 통신 ──
+  Future<void> _handleBackendLogin(GoogleSignInAccount account) async {
     setState(() => _isLoading = true);
 
     try {
-      // ── Google 인증 ──
-      await GoogleSignIn.instance.initialize(
-        serverClientId: '813032635406-c9l4qiv9lijsfjpovhvu1k9ggfnohg4d.apps.googleusercontent.com',
-      );
-
-      final GoogleSignInAccount account = await GoogleSignIn.instance.authenticate();
-      final String? idToken = account.authentication.idToken;
+      // 🚨 [v7 문법 변경] authentication은 더 이상 Future가 아니므로 await를 쓰지 않습니다!
+      final GoogleSignInAuthentication googleAuth = account.authentication;
+      final String? idToken = googleAuth.idToken;
 
       if (idToken == null) {
-        if (mounted) {
-          AppDialog.show(
-            context,
-            title: '로그인 오류',
-            message: '인증 토큰을 가져올 수 없습니다.\n잠시 후 다시 시도해 주세요.',
-          );
-        }
+        if (mounted) AppDialog.show(context, title: '오류', message: '인증 토큰이 없습니다.');
         return;
       }
 
-      // 독자적 Dio 인스턴스 → DioClient.instance 사용
       final data = await DioClient.instance.post(
         '/api/v1/auth/oauth2/login',
         data: {
@@ -54,40 +88,17 @@ class _LoginScreenState extends State<LoginScreen> {
         },
       );
 
-      // statusCode 분기 제거 — ApiException이 throw되지 않으면 성공
       await _storage.write(key: 'auth_token', value: data['token'] as String);
-      await _storage.write(key: 'user_id',    value: (data['id'] as int).toString());
+      await _storage.write(key: 'user_id', value: (data['id'] as int).toString());
       await _storage.write(key: 'user_email', value: data['email'] as String);
 
       if (!mounted) return;
 
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => MainScreen()),
-      );
-
-      // ApiException: DioClient 에서 변환된 서버/네트워크 에러 처리
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => MainScreen()));
     } on ApiException catch (e) {
-      if (mounted) {
-        AppDialog.show(context, title: '로그인 오류', message: e.message);
-      }
-
-      // Google 로그인 전용 에러 처리 (sign_in_canceled, sign_in_failed 등)
+      if (mounted) AppDialog.show(context, title: '로그인 오류', message: e.message);
     } catch (e) {
-      if (!mounted) return;
-
-      final String errorStr = e.toString();
-      final String message;
-
-      if (errorStr.contains('cancel') || errorStr.contains('sign_in_canceled')) {
-        message = '로그인이 취소되었습니다.';
-      } else if (errorStr.contains('sign_in_failed')) {
-        message = 'Google 로그인에 실패했습니다.\n잠시 후 다시 시도해 주세요.';
-      } else {
-        message = '알 수 없는 오류가 발생했습니다.\n잠시 후 다시 시도해 주세요.';
-      }
-
-      AppDialog.show(context, title: '로그인 오류', message: message);
-
+      if (mounted) AppDialog.show(context, title: '로그인 오류', message: '서버와 연결할 수 없습니다.');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -120,30 +131,34 @@ class _LoginScreenState extends State<LoginScreen> {
               SizedBox(height: AppDimensions.gapSection + 20.0),
               Center(
                 child: _isLoading
-                    ? const CircularProgressIndicator(
-                  color: AppColors.primary,
-                  strokeWidth: 2.5,
-                )
+                    ? const CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2.5)
                     : Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 50.0),
-                  child: OutlinedButton.icon(
-                    onPressed: _handleGoogleLogin,
-                    icon: Image.asset(
-                      AppIcons.googleIcon,
-                      width: 20,
-                      height: 20,
+                  // ── 4. 플랫폼(웹/모바일)에 따라 다른 버튼 렌더링 ──
+                  child: kIsWeb
+                      ? SizedBox(
+                    height: 64, // 구글 렌더버튼 권장 높이
+                    width: double.infinity,
+                    child: web.renderButton(
+                      configuration: web.GSIButtonConfiguration(
+                        minimumWidth: 300,
+                        theme: web.GSIButtonTheme.outline, // 하얀 바탕 테마
+                        shape: web.GSIButtonShape.pill, // 모서리가 완전히 둥근 형태
+                        text: web.GSIButtonText.continueWith, // "계속하기" 텍스트
+                        logoAlignment: web.GSIButtonLogoAlignment.center, // 로고를 중앙으로
+                        size: web.GSIButtonSize.large, // 버튼 기본 폰트/로고 크기
+                      ),
                     ),
-                    label: const Text(
-                      '구글 계정으로 계속하기',
-                      style: TextStyle(color: AppColors.gray900),
-                    ),
+                  )
+                      : OutlinedButton.icon(
+                    onPressed: _handleMobileGoogleLogin,
+                    icon: Image.asset(AppIcons.googleIcon, width: 20, height: 20),
+                    label: const Text('구글 계정으로 계속하기', style: TextStyle(color: AppColors.gray900)),
                     style: OutlinedButton.styleFrom(
                       backgroundColor: Colors.white,
                       side: const BorderSide(color: AppColors.gray300),
                       minimumSize: const Size(double.infinity, 55),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(5),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
                     ),
                   ),
                 ),
