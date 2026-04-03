@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:samak_fe/core/design_system/app_text_styles.dart';
 import 'package:samak_fe/core/network/dio_client.dart';
 import 'package:samak_fe/core/network/api_exception.dart';
 import 'package:samak_fe/core/design_system/app_dimensions.dart';
@@ -9,6 +10,7 @@ import 'package:samak_fe/core/design_system/app_icons.dart';
 import '../core/design_system/app_colors.dart';
 import '../main.dart';
 import '../core/design_system/widgets/app_dialog.dart';
+import '../core/design_system/app_text_styles.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -106,28 +108,46 @@ class _LoginScreenState extends State<LoginScreen> {
             height: 85,
           ),
           SizedBox(height: AppDimensions.gapSection),
+          Text(
+            "사막으로 취업 사기를 함께 막아요",
+            style: AppTypography.large20
+          ),
+          SizedBox(height: AppDimensions.gapSection + 20.0),
           Center(
             child: _isLoading
                 ? const CircularProgressIndicator(
               color: AppColors.primary,
               strokeWidth: 2.5,
-            )
-                : ElevatedButton.icon(
-              onPressed: _handleGoogleLogin,
-              icon: const Icon(Icons.login, color: AppColors.primary),
-              label: const Text(
-                'Google로 로그인',
-                style: TextStyle(color: AppColors.primary),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.background,
-                minimumSize: const Size(130, 52),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(100),
+            ) :
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 50.0),
+              child: OutlinedButton.icon(
+                onPressed: _handleGoogleLogin,
+                icon: Image.asset(
+                  AppIcons.googleIcon,
+                  width: 20,
+                  height: 20,
                 ),
-                elevation: 2.0,
+                label: const Text(
+                  '구글 계정으로 계속하기',
+                  style: TextStyle(color: AppColors.gray900),
+                ),
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  side: const BorderSide(color: AppColors.gray300),
+                  minimumSize: const Size(double.infinity, 55),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                ),
               ),
             ),
+          ),
+          SizedBox(height: AppDimensions.gapSection,),
+          Text(
+            "사막을 통해 아래 정보들을 검증할 수 있어요",
+            style: AppTypography.small12.copyWith(color: AppColors.gray500),
+            textAlign: TextAlign.center,
           ),
         ],
       ),

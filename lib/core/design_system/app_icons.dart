@@ -17,6 +17,7 @@ class AppIcons {
   static const String defaultProfile = '$_basePath/ic_default-profile.svg';
   static const String eye = '$_basePath/ic_eye.svg';
   static const String goodFace = '$_basePath/ic_good-face.svg';
+  static const String googleIcon = '$_basePath/ic_googleicon.png';
   static const String heart = '$_basePath/ic_heart.svg';
   static const String heartFilled = '$_basePath/ic_heart_filled.svg';
   static const String home = '$_basePath/ic_home.svg';
