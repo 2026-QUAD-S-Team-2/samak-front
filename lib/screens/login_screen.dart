@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_svg/svg.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:google_sign_in_web/web_only.dart' as web;
@@ -12,6 +11,7 @@ import 'package:samak_fe/core/design_system/app_icons.dart';
 import '../core/design_system/app_colors.dart';
 import '../main.dart';
 import '../core/design_system/widgets/app_dialog.dart';
+import 'dart:async';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -21,9 +21,13 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
+  static bool _isGoogleSignInInitialized = false;
+  StreamSubscription<GoogleSignInAuthenticationEvent>? _authSubscription; // 리스터 저장할 변수
+
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   bool _isLoading = false;
 
+  // 구글 로그인 인스턴스
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
 
   @override
@@ -32,52 +36,47 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     _initializeGoogleSignIn();
   }
 
-  Future<void> _initializeGoogleSignIn() async {
-    await _googleSignIn.initialize(
-      clientId: '813032635406-1snutrhgcd2h7518ncc407jmha2dqh6b.apps.googleusercontent.com',
-      serverClientId: kIsWeb ? null : '813032635406-c9l4qiv9lijsfjpovhvu1k9ggfnohg4d.apps.googleusercontent.com',
-    );
+  // 리스터 해제
+  @override
+  void dispose() {
+    _authSubscription?.cancel(); // 화면이 닫힐 때 감시 중단
+    super.dispose();
+  }
 
-    _googleSignIn.authenticationEvents.listen((GoogleSignInAuthenticationEvent event) async {
+  Future<void> _initializeGoogleSignIn() async {
+    if (!_isGoogleSignInInitialized) {
+      // 웹 전용 클라이언트 ID로만 초기화
+      await _googleSignIn.initialize(
+        clientId: '813032635406-qrkum54puofurnpj9vfkahlg448gh218.apps.googleusercontent.com',
+      );
+      _isGoogleSignInInitialized = true; // 초기화 완료 상태로 변경
+      debugPrint('Google Sign-In Initialized');
+    }
+
+    if (!mounted) return;
+
+    // 리스너를 변수에 할당
+    _authSubscription = _googleSignIn.authenticationEvents.listen((event) async {
       if (event is GoogleSignInAuthenticationEventSignIn) {
         final GoogleSignInAccount? account = event.user;
-        if (account != null) {
+        if (account != null && mounted) {
           await _handleBackendLogin(account);
         }
       }
     });
   }
 
-  // ── 모바일용 커스텀 버튼 클릭 이벤트 ──
-  Future<void> _handleMobileGoogleLogin() async {
-    setState(() => _isLoading = true);
-    try {
-      final GoogleSignInAccount account = await _googleSignIn.authenticate();
-
-      if (!kIsWeb) {
-        await _handleBackendLogin(account);
-      }
-    } catch (e) {
-      if (mounted) {
-        AppDialog.show(context, title: '로그인 오류', message: '로그인을 취소했거나 실패했습니다.');
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  // ── 구글 토큰 획득 후 백엔드(Dio) 통신 ──
-  Future<void> _handleBackendLogin(GoogleSignInAccount account) async {
+  // 백엔드 통신 로직 (동일하게 유지하되 모바일 호출부 제거)
+  Future <void> _handleBackendLogin(GoogleSignInAccount account) async {
+    if (!mounted || _isLoading) return;
     setState(() => _isLoading = true);
 
     try {
-      // 🚨 [v7 문법 변경] authentication은 더 이상 Future가 아니므로 await를 쓰지 않습니다!
       final GoogleSignInAuthentication googleAuth = account.authentication;
       final String? idToken = googleAuth.idToken;
 
       if (idToken == null) {
-        if (mounted) AppDialog.show(context, title: '오류', message: '인증 토큰이 없습니다.');
-        return;
+        throw Exception('구글 인증 토큰을 생성할 수 없습니다.');
       }
 
       final data = await DioClient.instance.post(
@@ -88,17 +87,20 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         },
       );
 
-      await _storage.write(key: 'auth_token', value: data['token'] as String);
-      await _storage.write(key: 'user_id', value: (data['id'] as int).toString());
-      await _storage.write(key: 'user_email', value: data['email'] as String);
-
       if (!mounted) return;
 
+      await _storage.write(key: 'auth_token', value: data['token']?.toString() ?? '');
+      await _storage.write(key: 'user_id', value: data['id']?.toString() ?? '');
+      await _storage.write(key: 'user_email', value: data['email']?.toString() ?? '');
+
+      if (!mounted) return;
       Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => MainScreen()));
+
     } on ApiException catch (e) {
       if (mounted) AppDialog.show(context, title: '로그인 오류', message: e.message);
     } catch (e) {
-      if (mounted) AppDialog.show(context, title: '로그인 오류', message: '서버와 연결할 수 없습니다.');
+      debugPrint('Login Error: $e'); // 디버깅용 로그
+      if (mounted) AppDialog.show(context, title: '로그인 오류', message: '인증 과정에서 문제가 발생했습니다.');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -109,65 +111,41 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
         child: Container(
-          constraints: BoxConstraints(
-            minHeight: MediaQuery.of(context).size.height,
-          ),
+          constraints: BoxConstraints(minHeight: MediaQuery.of(context).size.height),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const SizedBox(height: 80), // 상단 여유 공간
-              SvgPicture.asset(
-                AppIcons.title,
-                width: 180,
-                height: 85,
-              ),
+              const SizedBox(height: 80),
+              SvgPicture.asset(AppIcons.title, width: 180, height: 85),
               SizedBox(height: AppDimensions.gapSection),
-              Text(
-                "사막으로 취업 사기를 함께 막아요",
-                style: AppTypography.large20,
-              ),
+              Text("사막으로 취업 사기를 함께 막아요", style: AppTypography.large20),
               SizedBox(height: AppDimensions.gapSection + 20.0),
+
+              // ── 웹 전용 버튼만 렌더링 ──
               Center(
                 child: _isLoading
-                    ? const CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2.5)
+                    ? const CircularProgressIndicator(color: AppColors.primary)
                     : Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 50.0),
-                  // ── 4. 플랫폼(웹/모바일)에 따라 다른 버튼 렌더링 ──
-                  child: kIsWeb
-                      ? SizedBox(
-                    height: 64, // 구글 렌더버튼 권장 높이
-                    width: double.infinity,
+                  child: SizedBox(
+                    height: 64,
+                    width: 300, // 웹 환경에 맞게 고정 너비 설정
                     child: web.renderButton(
                       configuration: web.GSIButtonConfiguration(
-                        minimumWidth: 300,
-                        theme: web.GSIButtonTheme.outline, // 하얀 바탕 테마
-                        shape: web.GSIButtonShape.pill, // 모서리가 완전히 둥근 형태
-                        text: web.GSIButtonText.continueWith, // "계속하기" 텍스트
-                        logoAlignment: web.GSIButtonLogoAlignment.center, // 로고를 중앙으로
-                        size: web.GSIButtonSize.large, // 버튼 기본 폰트/로고 크기
+                        theme: web.GSIButtonTheme.outline,
+                        shape: web.GSIButtonShape.pill,
+                        text: web.GSIButtonText.continueWith,
+                        logoAlignment: web.GSIButtonLogoAlignment.center,
+                        size: web.GSIButtonSize.large,
                       ),
-                    ),
-                  )
-                      : OutlinedButton.icon(
-                    onPressed: _handleMobileGoogleLogin,
-                    icon: Image.asset(AppIcons.googleIcon, width: 20, height: 20),
-                    label: const Text('구글 계정으로 계속하기', style: TextStyle(color: AppColors.gray900)),
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      side: const BorderSide(color: AppColors.gray300),
-                      minimumSize: const Size(double.infinity, 55),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
                     ),
                   ),
                 ),
               ),
               SizedBox(height: AppDimensions.gapSection),
-
               const CascadingVerificationCards(),
-
-              const SizedBox(height: 40), // 하단 여유 공간
+              const SizedBox(height: 40),
             ],
           ),
         ),
@@ -176,7 +154,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   }
 }
 
-// ── 촤라락 내려오는 카드 애니메이션 위젯 ──
+// ── 촤라락 내려오는 카드 애니메이션 위젯──
 class CascadingVerificationCards extends StatefulWidget {
   const CascadingVerificationCards({super.key});
 

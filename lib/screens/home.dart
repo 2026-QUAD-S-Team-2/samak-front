@@ -36,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // 멤버 정보 + 퀴즈 병렬 로드
-  Future<void> _loadData() async {
+  /* Future<void> _loadData() async {
     try {
       final results = await Future.wait([
         MemberRepository.instance.getMe(),
@@ -64,6 +64,34 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() => _homeError = e.toString());
     }
     */
+  }
+
+   */
+
+  Future<void> _loadData() async {
+    // 1. 사용자 정보 로드 (필수)
+    try {
+      final member = await MemberRepository.instance.getMe();
+      setState(() => _member = member);
+    } catch (e) {
+      debugPrint('사용자 정보 로드 실패: $e');
+    }
+
+    // 2. 퀴즈 정보 로드 (실패해도 앱은 돌아가게)
+    try {
+      final quiz = await QuizRepository.instance.getTodayQuiz();
+      setState(() => _quiz = quiz);
+    } catch (e) {
+      debugPrint('퀴즈 로드 실패: $e');
+    }
+
+    // 3. 뉴스 정보 로드
+    try {
+      final news = await NewsRepository.instance.getBannerNews();
+      setState(() => _newsList = news);
+    } catch (e) {
+      debugPrint('뉴스 로드 실패: $e');
+    }
   }
 
   @override

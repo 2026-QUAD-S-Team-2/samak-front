@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../core/design_system/app_icons.dart';
 import '../core/design_system/app_colors.dart';
 import 'login_screen.dart';
+import 'home.dart';
 
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({super.key});
