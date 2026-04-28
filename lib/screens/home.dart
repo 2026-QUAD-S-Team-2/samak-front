@@ -111,9 +111,9 @@ class _HomeScreenState extends State<HomeScreen> {
               child: _BannerCard(newsList: _newsList,),
             ),
             AppDimensions.verticalGap24,
-            _QuizSection(quiz: _quiz),
-            AppDimensions.verticalGap24,
             _AnnouncementSection(),
+            AppDimensions.verticalGap24,
+            _QuizSection(quiz: _quiz),
             AppDimensions.verticalGap24,
           ],
         ),
@@ -289,82 +289,92 @@ class _BannerCardState extends State<_BannerCard> {
 class _AnnouncementSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: AppDimensions.screenEdgePadding,
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: BoxDecoration(
-        color: AppColors.surfacePrimary,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: AppDimensions.screenEdgePadding,
-            child: Row(
-              children: [
-                Text(
-                  '공고 확인',
-                  style: AppTypography.largeBold16.copyWith(
-                    letterSpacing: -0.5
-                  ),
-                ),
-                const SizedBox(width: 8,),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.purple100,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    '2',
-                    style: AppTypography.smallBold12.copyWith(
-                      color: AppColors.purple500
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── 1. 섹션 헤더 (Flexible/Expanded 적용으로 오버플로우 방지) ──
+        Padding(
+          padding: AppDimensions.screenEdgePadding,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 첫 번째 줄: 타이틀 + 숫자 배지
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '공고 확인',
+                    style: AppTypography.largeBold16.copyWith(
+                      letterSpacing: -0.5,
                     ),
                   ),
-                )
-              ],
-            ),
-          ),
-          const SizedBox(height: 8,),
-          Padding(
-            padding: AppDimensions.screenEdgePadding,
-            child: Text(
-              '김땡땡 님이 관심 있는 분야의 공고가 올라왔어요',
-              style: AppTypography.small12.copyWith(
-                color: AppColors.textSecondary,
-                letterSpacing: -0.5
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.purple100,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      '2',
+                      style: AppTypography.smallBold12.copyWith(
+                        color: AppColors.purple500,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
+              const SizedBox(height: 6), // 타이틀과 설명 사이 간격
+              // 두 번째 줄: 설명 텍스트
+              Text(
+                '김땡땡 님이 관심 있는 분야의 공고가 올라왔어요',
+                style: AppTypography.small12.copyWith(
+                  color: AppColors.textSecondary,
+                  letterSpacing: -0.5,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 16,),
-          Padding(
-            padding: AppDimensions.screenEdgePadding,
-            child: Column(
-              children: [
-                _AnnouncementCard(
-                  companyName: '\'OO회사\' 공고',
-                  dateRange: '2.01 - 2.24',
-                  memberCount: 3,
-                  hasMoreMembers: true,
-                  isActive: true,
-                ),
-                AppDimensions.verticalGap12,
-                _AnnouncementCard(
-                  companyName: '\'OOO회사\' 공고',
-                  dateRange: '2.08 - 2.26',
-                  memberCount: 3,
-                  hasMoreMembers: false,
-                  isActive: false,
-                ),
-              ],
-            ),
-          )
-        ],
-      ),
+        ),
+
+        const SizedBox(height: 12),
+
+        // ── 2. 아이템 박스 ──
+        Container(
+          margin: AppDimensions.screenEdgePadding,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                offset: const Offset(0, 4),
+                blurRadius: 12,
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              _AnnouncementCard(
+                companyName: '\'OO회사\' 공고',
+                dateRange: '2.01 - 2.24',
+                memberCount: 3,
+                hasMoreMembers: true,
+                isActive: true,
+              ),
+              AppDimensions.verticalGap12,
+              _AnnouncementCard(
+                companyName: '\'OOO회사\' 공고',
+                dateRange: '2.08 - 2.26',
+                memberCount: 3,
+                hasMoreMembers: false,
+                isActive: false,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -515,7 +525,6 @@ class _AnnouncementCard extends StatelessWidget {
 // quiz 파라미터 추가
 class _QuizSection extends StatefulWidget {
   final TodayQuizModel? quiz;
-
   const _QuizSection({this.quiz});
 
   @override
@@ -577,9 +586,10 @@ class _QuizSectionState extends State<_QuizSection> {
             padding: AppDimensions.screenEdgePadding,
             child: Row(
               children: [
-                Text(
+                Flexible(child: Text(
                   '오늘의 퀴즈',
                   style: AppTypography.largeBold16.copyWith(letterSpacing: -0.5),
+                  ),
                 ),
                 const SizedBox(width: 8),
                 Container(
@@ -596,16 +606,6 @@ class _QuizSectionState extends State<_QuizSection> {
               ],
             ),
           ),
-
-          // const SizedBox(height: 8),
-          //
-          // Padding(
-          //   padding: AppDimensions.screenEdgePadding,
-          //   child: Text(
-          //     '퀴즈를 완료하면 사막 오아시스 포인트가 쌓여요!',
-          //     style: AppTypography.small12.copyWith(color: AppColors.textSecondary),
-          //   ),
-          // ),
 
           const SizedBox(height: 16),
 
