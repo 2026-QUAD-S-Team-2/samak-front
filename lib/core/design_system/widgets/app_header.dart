@@ -13,6 +13,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   final bool showMenuButton;
   final VoidCallback? onMenuTap;
   final String? profileImageUrl;
+  final VoidCallback? onProfileTap;
 
   const AppHeader({
     super.key,
@@ -23,6 +24,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
     this.showMenuButton = false,
     this.onMenuTap,
     this.profileImageUrl,
+    this.onProfileTap
   });
 
   @override
@@ -69,17 +71,21 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
 
               Align(
                 alignment: Alignment.centerRight,
-                child: ClipOval(
-                  child: SizedBox(
-                    width: 32,
-                    height: 32,
-                    child: (profileImageUrl != null && profileImageUrl!.isNotEmpty)
-                        ? Image.network(
-                      profileImageUrl!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => SvgPicture.asset(AppIcons.defaultProfile),
-                    )
-                        : SvgPicture.asset(AppIcons.defaultProfile),
+                child: GestureDetector(
+                  onTap: onProfileTap,
+                  behavior: HitTestBehavior.opaque,
+                  child: ClipOval(
+                    child: SizedBox(
+                      width: 32,
+                      height: 32,
+                      child: (profileImageUrl != null && profileImageUrl!.isNotEmpty)
+                          ? Image.network(
+                        profileImageUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => SvgPicture.asset(AppIcons.defaultProfile),
+                      )
+                          : SvgPicture.asset(AppIcons.defaultProfile),
+                    ),
                   ),
                 ),
               ),

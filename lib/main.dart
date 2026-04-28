@@ -81,6 +81,11 @@ class _MainScreenState extends State<MainScreen> {
         showMenuButton: true,
         onMenuTap: () => _scaffoldKey.currentState?.openDrawer(),
         profileImageUrl: _member?.profileImageUrl,
+        onProfileTap: () {
+          setState(() {
+            _selectedIndex = 4;
+          },);
+        },
       ),
       drawer: Drawer(
         width: MediaQuery.of(context).size.width * 0.65,
