@@ -8,7 +8,7 @@ class AppDimensions {
   static const double topBarHeight = 65.0;
   static const double totalTopHeight = 116.0;
   static const double bottomSafeArea = 24.0;
-  static const double navigatorBarHeight = 63.0;
+  static const double navigatorBarHeight = 50.0;
   static const double navBarHorizontalPadding = 32.0;
   static const double navBarVerticalPadding = 10.0;
 

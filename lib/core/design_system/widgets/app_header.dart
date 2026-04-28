@@ -4,12 +4,16 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../app_icons.dart';
 import '../app_dimensions.dart';
 import '../app_text_styles.dart';
+import '../app_colors.dart';
 
 class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final List<Widget>? actions;
   final bool showBackButton;
   final VoidCallback? onBack;
+  final bool showMenuButton;
+  final VoidCallback? onMenuTap;
+  final String? profileImageUrl;
 
   const AppHeader({
     super.key,
@@ -17,6 +21,9 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
     this.actions,
     this.showBackButton = false,
     this.onBack,
+    this.showMenuButton = false,
+    this.onMenuTap,
+    this.profileImageUrl,
   });
 
   @override
@@ -31,7 +38,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
             alignment: Alignment.center,
             children: [
               Text(
-                title,
+                "사막",
                 style: AppTypography.large20,
               ),
 
@@ -46,16 +53,40 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                       height: 32,
                     ),
                   ),
-                ),
-
-              if (actions != null)
+                )
+              else if (showMenuButton)
                 Align(
-                  alignment: Alignment.centerRight,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: actions!,
+                  alignment: Alignment.centerLeft,
+                  child: GestureDetector(
+                    onTap: onMenuTap,
+                    child: SvgPicture.asset(
+                      AppIcons.menu,
+                      width: 24,
+                      height: 24,
+                      colorFilter: const ColorFilter.mode(AppColors.gray900, BlendMode.srcIn),
+                    ),
                   ),
                 ),
+
+              Align(
+                alignment: Alignment.centerRight,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (actions != null) ...actions!,
+                    const SizedBox(width: 8),
+                    ClipOval(
+                      child: SizedBox(
+                        width: 32,
+                        height: 32,
+                        child: (profileImageUrl != null && profileImageUrl!.isNotEmpty)
+                            ? Image.network(profileImageUrl!, fit: BoxFit.cover)
+                            : SvgPicture.asset(AppIcons.defaultProfile, fit: BoxFit.cover),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),

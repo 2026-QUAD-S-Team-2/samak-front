@@ -90,11 +90,6 @@ class _AnalysisListScreenState extends State<AnalysisListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppHeader(
-        title: '분석 전체 리스트',
-        showBackButton: true,
-        onBack: widget.onBackToHome,
-      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
           : _errorMessage != null

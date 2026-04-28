@@ -105,17 +105,6 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: statusBarHeight + AppDimensions.bottomSafeArea),
-            _ProfileSection(member: _member, onProfileTap: widget.onProfileTap), // member 전달
-            /*
-            if (_homeError != null)
-              Padding(
-                padding: AppDimensions.screenEdgePadding,
-                child: Text(
-                  _homeError!,
-                  style: AppTypography.small12.copyWith(color: AppColors.error),
-                ),
-              ),
-             */
             AppDimensions.verticalGap16,
             Padding(
               padding: AppDimensions.screenEdgePadding,
@@ -128,91 +117,6 @@ class _HomeScreenState extends State<HomeScreen> {
             AppDimensions.verticalGap24,
           ],
         ),
-      ),
-    );
-  }
-}
-
-// member 파라미터 추가
-class _ProfileSection extends StatelessWidget {
-  final MemberModel? member;
-  final VoidCallback? onProfileTap;
-
-  const _ProfileSection({this.member, this.onProfileTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: AppDimensions.screenEdgePadding,
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: onProfileTap,
-            child: ClipOval(
-              child: SizedBox(
-                width: 48,
-                height: 48,
-                child: (member?.profileImageUrl != null &&
-                    member!.profileImageUrl!.isNotEmpty)
-                    ? Image.network(
-                  member!.profileImageUrl!,
-                  width: 48,
-                  height: 48,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => SvgPicture.asset(
-                    AppIcons.defaultProfile,
-                    width: 48,
-                    height: 48,
-                    fit: BoxFit.cover,
-                  ),
-                )
-                    : SvgPicture.asset(
-                  AppIcons.defaultProfile,
-                  width: 48,
-                  height: 48,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  member != null ? '${member!.nickname}님' : '불러오는 중...',
-                  style: AppTypography.largeBold16,
-                ),
-                // TODO: 직군 정보는 API 응답에 없으므로 추후 추가 시 연동
-              ],
-            ),
-          ),
-          // 메시지·알림 버튼 — 기존 코드 유지
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF4F5FF),
-              borderRadius: BorderRadius.circular(50),
-            ),
-            child: Center(
-              child: SvgPicture.asset(AppIcons.message2, width: 20, height: 20),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF4F5FF),
-              borderRadius: BorderRadius.circular(50),
-            ),
-            child: const Center(
-              child: Icon(Icons.notifications, color: AppColors.warning, size: 20),
-            ),
-          ),
-        ],
       ),
     );
   }

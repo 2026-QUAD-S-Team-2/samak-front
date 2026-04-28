@@ -74,7 +74,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppHeader(title: '프로필'),
       body: _isLoading
           ? const Center(
         child: CircularProgressIndicator(color: AppColors.primary),
