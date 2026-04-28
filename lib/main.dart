@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'core/design_system/widgets/app_header.dart';
-import 'core/design_system/widgets/app_navigationbar.dart';
 import 'core/design_system/app_text_styles.dart';
+import 'core/design_system/app_icons.dart';
 import 'core/design_system/app_colors.dart';
 import 'screens/home.dart';
 import 'screens/analysis_list.dart';
@@ -81,8 +82,9 @@ class _MainScreenState extends State<MainScreen> {
         onMenuTap: () => _scaffoldKey.currentState?.openDrawer(),
         profileImageUrl: _member?.profileImageUrl,
       ),
-      // 왼쪽 사이드 바 (Drawer) 구성
       drawer: Drawer(
+        width: MediaQuery.of(context).size.width * 0.65,
+        backgroundColor: AppColors.surfacePrimary,
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
@@ -92,9 +94,10 @@ class _MainScreenState extends State<MainScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _member != null ? '${_member!.nickname}님' : '사용자님',
-                    style: AppTypography.largeBold16.copyWith(color: Colors.white),
+                    _member != null ? '${_member!.nickname} 님' : '사용자님',
+                    style: AppTypography.large20.copyWith(color: Colors.white, letterSpacing: -0.3),
                   ),
+                  SizedBox(height: 5),
                   Text(
                     _member?.email ?? '',
                     style: AppTypography.small12.copyWith(color: AppColors.purple100),
@@ -103,32 +106,33 @@ class _MainScreenState extends State<MainScreen> {
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.home),
-              title: const Text('홈'),
+              leading: SvgPicture.asset(AppIcons.homeFilled, width: 20, height: 20),
+              title: Text('홈', style: AppTypography.middle14.copyWith(color: AppColors.gray900, letterSpacing: -0.3),
+              ),
               selected: _selectedIndex == 0,
               onTap: () => _onItemTapped(0),
             ),
             ListTile(
-              leading: const Icon(Icons.notifications),
-              title: const Text('소식'),
+              leading: SvgPicture.asset(AppIcons.heartFilled, width: 20, height: 20),
+              title: Text('소식', style: AppTypography.middle14.copyWith(color: AppColors.gray900, letterSpacing: -0.3)),
               selected: _selectedIndex == 1,
               onTap: () => _onItemTapped(1),
             ),
             ListTile(
-              leading: const Icon(Icons.analytics),
-              title: const Text('분석'),
+              leading: SvgPicture.asset(AppIcons.addFilled, width: 20, height: 20),
+              title: Text('분석', style: AppTypography.middle14.copyWith(color: AppColors.gray900, letterSpacing: -0.3),),
               selected: _selectedIndex == 2,
               onTap: () => _onItemTapped(2),
             ),
             ListTile(
-              leading: const Icon(Icons.forum),
-              title: const Text('게시판'),
+              leading: SvgPicture.asset(AppIcons.chatDotsFilled, width: 20, height: 20),
+              title: Text('게시판', style: AppTypography.middle14.copyWith(color: AppColors.gray900, letterSpacing: -0.3),),
               selected: _selectedIndex == 3,
               onTap: () => _onItemTapped(3),
             ),
             ListTile(
-              leading: const Icon(Icons.person),
-              title: const Text('프로필'),
+              leading: SvgPicture.asset(AppIcons.userFilled, width: 20, height: 20),
+              title: Text('프로필', style: AppTypography.middle14.copyWith(color: AppColors.gray900, letterSpacing: -0.3),),
               selected: _selectedIndex == 4,
               onTap: () => _onItemTapped(4),
             ),

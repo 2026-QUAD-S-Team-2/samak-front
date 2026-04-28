@@ -4,7 +4,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../app_icons.dart';
 import '../app_dimensions.dart';
 import '../app_text_styles.dart';
-import '../app_colors.dart';
 
 class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   final String title;

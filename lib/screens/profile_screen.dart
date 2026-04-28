@@ -3,7 +3,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../core/design_system/app_colors.dart';
 import '../core/design_system/app_dimensions.dart';
 import '../core/design_system/app_text_styles.dart';
-import '../core/design_system/widgets/app_header.dart';
 import '../core/design_system/widgets/app_dialog.dart';
 import '../core/design_system/app_icons.dart';
 import '../data/repositories/auth_repository.dart';
