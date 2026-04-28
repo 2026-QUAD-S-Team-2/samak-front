@@ -37,54 +37,51 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              Text(
-                "사막",
-                style: AppTypography.large20,
-              ),
-
-              if (showBackButton)
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: GestureDetector(
-                    onTap: onBack,
-                    child: SvgPicture.asset(
-                      AppIcons.back,
-                      width: 32,
-                      height: 32,
-                    ),
-                  ),
-                )
-              else if (showMenuButton)
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: GestureDetector(
-                    onTap: onMenuTap,
-                    child: SvgPicture.asset(
-                      AppIcons.menu,
-                      width: 24,
-                      height: 24,
-                      colorFilter: const ColorFilter.mode(AppColors.gray900, BlendMode.srcIn),
-                    ),
-                  ),
-                ),
-
               Align(
-                alignment: Alignment.centerRight,
+                alignment: Alignment.centerLeft,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (actions != null) ...actions!,
-                    const SizedBox(width: 8),
-                    ClipOval(
-                      child: SizedBox(
-                        width: 32,
-                        height: 32,
-                        child: (profileImageUrl != null && profileImageUrl!.isNotEmpty)
-                            ? Image.network(profileImageUrl!, fit: BoxFit.cover)
-                            : SvgPicture.asset(AppIcons.defaultProfile, fit: BoxFit.cover),
+                    if (showBackButton)
+                      GestureDetector(
+                        onTap: onBack,
+                        child: SvgPicture.asset(AppIcons.back, width: 32, height: 32),
+                      )
+                    else if (showMenuButton)
+                      GestureDetector(
+                        onTap: onMenuTap,
+                        child: SvgPicture.asset(AppIcons.menu, width: 24, height: 24),
                       ),
+
+                    const SizedBox(width: 16),
+
+                    title == '사막'
+                        ? SvgPicture.asset(
+                      AppIcons.appBarTitle,
+                      height: 24,
+                    )
+                        : Text(
+                      title,
+                      style: AppTypography.largeBold16.copyWith(fontSize: 18),
                     ),
                   ],
+                ),
+              ),
+
+              Align(
+                alignment: Alignment.centerRight,
+                child: ClipOval(
+                  child: SizedBox(
+                    width: 32,
+                    height: 32,
+                    child: (profileImageUrl != null && profileImageUrl!.isNotEmpty)
+                        ? Image.network(
+                      profileImageUrl!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => SvgPicture.asset(AppIcons.defaultProfile),
+                    )
+                        : SvgPicture.asset(AppIcons.defaultProfile),
+                  ),
                 ),
               ),
             ],
