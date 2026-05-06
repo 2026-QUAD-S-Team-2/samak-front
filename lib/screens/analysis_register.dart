@@ -121,9 +121,9 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
     if (_pickedImages.length >= 4) return;
     final XFile? image = await _imagePicker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 50,
-      maxWidth: 1280,
-      maxHeight: 1280,
+      imageQuality: 30,
+      maxWidth: 800,
+      maxHeight: 800,
     );
     if (image != null) {
       setState(() => _pickedImages.add(image));
