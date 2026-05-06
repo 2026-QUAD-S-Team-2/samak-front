@@ -16,6 +16,7 @@ import '../data/models/city_model.dart';
 import '../data/models/analysis_item_create_request.dart';
 import '../data/models/analysis_item_list_model.dart';
 import '../core/network/api_exception.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class AnalysisRegisterScreen extends StatefulWidget {
   final VoidCallback? onBack;
@@ -166,27 +167,30 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
 
     setState(() => _isSubmitting = true);
 
-    List<String> imageNames;
+    late List<String> imageNames;
     try {
       if (_pickedImages.length == 1) {
+        // .path를 제거하고 XFile 객체 자체를 전달합니다.
         final imageName = await ImageRepository.instance.uploadSingle(
-          _pickedImages.first.path,
+          _pickedImages.first, // String이 아닌 XFile 전달
         );
         imageNames = [imageName];
       } else {
+        // .map((e) => e.path).toList() 부분을 제거하고 List<XFile>을 전달합니다.
         imageNames = await ImageRepository.instance.uploadMultiple(
-          _pickedImages.map((e) => e.path).toList(),
+          _pickedImages, // List<XFile> 전달
         );
       }
-    } on ApiException catch (e) {
-      // debugPrint('[AnalysisRegister] 이미지 업로드 실패 - statusCode: ${e.statusCode}, message: ${e.message}, raw: ${e.rawResponse}');
+    } on ApiException catch (e) { // catch (e) 대신 on ApiException catch (e) 사용
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message)),
+          SnackBar(content: Text(e.message)), // 이제 e.message를 인식합니다.
         );
         setState(() => _isSubmitting = false);
       }
       return;
+    } catch (e) { // 그 외 알 수 없는 에러 처리용 (선택 사항)
+      debugPrint('Unknown error: $e');
     }
 
     try {
@@ -501,8 +505,15 @@ class _ImageSlot extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: Image.file(
-              File(imageFile!.path),
+            child: kIsWeb
+                ? Image.network(
+              imageFile!.path, // 웹에서는 Blob URL이 전달됩니다.
+              width: 80,
+              height: 80,
+              fit: BoxFit.cover,
+            )
+                : Image.file(
+              File(imageFile!.path), // 모바일 환경
               width: 80,
               height: 80,
               fit: BoxFit.cover,
