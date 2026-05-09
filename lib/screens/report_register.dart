@@ -12,6 +12,7 @@ import '../data/repositories/report_repository.dart';
 import '../data/repositories/image_repository.dart';
 import '../data/models/report_model.dart';
 import '../core/network/api_exception.dart';
+import '../core/design_system/widgets/app_dialog.dart';
 
 class ReportRegisterScreen extends StatefulWidget {
   final VoidCallback? onBack;
@@ -106,8 +107,10 @@ class _ReportRegisterScreenState extends State<ReportRegisterScreen> {
         }
       } on ApiException catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(e.message)),
+          AppDialog.show(
+            context,
+            title:   '이미지 업로드 실패',
+            message: e.message,
           );
           setState(() => _isSubmitting = false);
         }
@@ -134,8 +137,10 @@ class _ReportRegisterScreenState extends State<ReportRegisterScreen> {
       Navigator.of(context).pop();
     } on ApiException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message)),
+        AppDialog.show(
+          context,
+          title:   '등록 실패',
+          message: e.message,
         );
       }
     } finally {
