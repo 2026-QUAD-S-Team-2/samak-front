@@ -1,7 +1,12 @@
+// [MODIFIED] 피해 사례 조회 화면
+// - 검색 유형: _SearchTypeButton(PopupMenu) → AppDropdown, 기본값 companyName, '전체' 제거
+// - 에러 처리: _errorMessage 상태 변수 → AppDialog.show()
 import 'package:flutter/material.dart';
 import '../core/design_system/app_colors.dart';
 import '../core/design_system/app_dimensions.dart';
 import '../core/design_system/app_text_styles.dart';
+import '../core/design_system/widgets/app_dropdown.dart';
+import '../core/design_system/widgets/app_dialog.dart';
 import '../data/repositories/report_repository.dart';
 import '../data/models/report_model.dart';
 import '../core/network/api_exception.dart';
@@ -17,10 +22,16 @@ class ReportListScreen extends StatefulWidget {
 class _ReportListScreenState extends State<ReportListScreen> {
   List<ReportListItemModel> _items = [];
   bool _isLoading = true;
-  String? _errorMessage;
-  ReportSortType    _sortType   = ReportSortType.mostReported;
-  ReportSearchType? _searchType;                              // null = 전체
+
+  ReportSortType _sortType = ReportSortType.mostReported;
+  // [MODIFIED] nullable → non-nullable, 기본값 companyName (전체 옵션 제거)
+  ReportSearchType _searchType = ReportSearchType.companyName;
+
   final TextEditingController _keywordController = TextEditingController();
+
+  // [ADDED] AppDropdown에 전달할 레이블 목록 (전체 제거, 열거형 순서 그대로 사용)
+  static final List<String> _searchTypeLabels =
+  ReportSearchType.values.map((e) => e.label).toList();
 
   @override
   void initState() {
@@ -35,20 +46,25 @@ class _ReportListScreenState extends State<ReportListScreen> {
   }
 
   Future<void> _loadItems() async {
-    setState(() {
-      _isLoading    = true;
-      _errorMessage = null;
-    });
+    setState(() => _isLoading = true);
     try {
       final keyword = _keywordController.text.trim();
       final items = await ReportRepository.instance.getReports(
+        // 검색어가 없으면 searchType을 전송하지 않아 서버가 전체 조회하도록 처리
         searchType: keyword.isNotEmpty ? _searchType : null,
         sortType:   _sortType,
         keyword:    keyword.isNotEmpty ? keyword : null,
       );
       setState(() => _items = items);
     } on ApiException catch (e) {
-      setState(() => _errorMessage = e.message);
+      // [MODIFIED] 에러 상태 변수 제거 → AppDialog 팝업으로 고지
+      if (mounted) {
+        AppDialog.show(
+          context,
+          title:   '조회 실패',
+          message: e.message,
+        );
+      }
     } finally {
       setState(() => _isLoading = false);
     }
@@ -61,6 +77,7 @@ class _ReportListScreenState extends State<ReportListScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+
           // ── 섹션 헤더 ──
           Padding(
             padding: const EdgeInsets.fromLTRB(
@@ -75,7 +92,7 @@ class _ReportListScreenState extends State<ReportListScreen> {
                 Text(
                   '피해 사례 조회',
                   style: AppTypography.largeBold16.copyWith(
-                    fontSize: 20,
+                    fontSize:      20,
                     letterSpacing: -0.5,
                   ),
                 ),
@@ -83,7 +100,7 @@ class _ReportListScreenState extends State<ReportListScreen> {
                 Text(
                   '등록된 피해 사례를 확인하고 취업 사기를 예방해보아요.',
                   style: AppTypography.small12.copyWith(
-                    color: AppColors.textSecondary,
+                    color:         AppColors.textSecondary,
                     letterSpacing: -0.3,
                   ),
                 ),
@@ -91,32 +108,36 @@ class _ReportListScreenState extends State<ReportListScreen> {
             ),
           ),
 
-          // ── 검색 영역: [검색 유형 선택] + [검색어 입력] ──
+          // ── 검색 영역 ──
+          // [MODIFIED] Row(_SearchTypeButton + TextField) →
+          //            Column(AppDropdown + _KeywordField)
+          //            AppDropdown은 인라인으로 아래 방향 확장되므로 Column이 적합
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppDimensions.screenPadding,
-              4,
-              AppDimensions.screenPadding,
-              4,
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppDimensions.screenPadding,
+              vertical:   4,
             ),
-            child: Row(
+            child: Column(
               children: [
-                _SearchTypeButton(
-                  selectedType: _searchType,
-                  onSelected: (type) {
+                // [MODIFIED] 커스텀 PopupMenu → AppDropdown, 기본값 '회사명', '전체' 없음
+                AppDropdown(
+                  value:    _searchType.label,
+                  hintText: '검색 유형을 선택해 주세요',
+                  items:    _searchTypeLabels,
+                  onChanged: (label) {
+                    if (label == null) return;
+                    final type = ReportSearchType.values
+                        .firstWhere((t) => t.label == label);
                     setState(() => _searchType = type);
-                    // 이미 검색어가 있는 경우 유형 변경 시 즉시 재조회
                     if (_keywordController.text.trim().isNotEmpty) {
                       _loadItems();
                     }
                   },
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _KeywordField(
-                    controller: _keywordController,
-                    onSubmitted: (_) => _loadItems(),
-                  ),
+                const SizedBox(height: 8),
+                _KeywordField(
+                  controller:  _keywordController,
+                  onSubmitted: (_) => _loadItems(),
                 ),
               ],
             ),
@@ -153,51 +174,41 @@ class _ReportListScreenState extends State<ReportListScreen> {
             ),
           ),
 
-          // ── 목록 / 로딩 / 에러 / 빈 상태 ──
+          // ── 목록 / 로딩 / 빈 상태 ──
+          // [MODIFIED] _errorMessage 분기 제거 (에러는 AppDialog로 처리)
           if (_isLoading)
             const Expanded(
               child: Center(
                 child: CircularProgressIndicator(color: AppColors.primary),
               ),
             )
-          else if (_errorMessage != null)
+          else if (_items.isEmpty)
             Expanded(
               child: Center(
                 child: Text(
-                  _errorMessage!,
+                  '등록된 피해 사례가 없습니다.',
                   style: AppTypography.middle14.copyWith(color: AppColors.gray500),
-                  textAlign: TextAlign.center,
                 ),
               ),
             )
-          else if (_items.isEmpty)
-              Expanded(
-                child: Center(
-                  child: Text(
-                    '등록된 피해 사례가 없습니다.',
-                    style: AppTypography.middle14.copyWith(color: AppColors.gray500),
-                  ),
+          else
+            Expanded(
+              child: ListView.separated(
+                padding: const EdgeInsets.fromLTRB(
+                  AppDimensions.screenPadding,
+                  0,
+                  AppDimensions.screenPadding,
+                  AppDimensions.screenPadding,
                 ),
-              )
-            else
-              Expanded(
-                child: ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppDimensions.screenPadding,
-                    0,
-                    AppDimensions.screenPadding,
-                    AppDimensions.screenPadding,
-                  ),
-                  itemCount:        _items.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
-                  itemBuilder: (_, index) =>
-                      _ReportItemCard(item: _items[index]),
-                ),
+                itemCount:        _items.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                itemBuilder: (_, index) =>
+                    _ReportItemCard(item: _items[index]),
               ),
+            ),
         ],
       ),
 
-      // ── 등록 플로팅 버튼 ──
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.of(context)
             .push(MaterialPageRoute(
@@ -205,73 +216,10 @@ class _ReportListScreenState extends State<ReportListScreen> {
             onBack: () => Navigator.of(context).pop(),
           ),
         ))
-            .then((_) => _loadItems()), // 등록 완료 후 목록 갱신
+            .then((_) => _loadItems()),
         backgroundColor: AppColors.primary,
         shape:           const CircleBorder(),
         child:           const Icon(Icons.add, color: Colors.white, size: 28),
-      ),
-    );
-  }
-}
-
-// ── 검색 유형 선택 버튼 ──
-// PopupMenuButton을 활용해 전체/회사명/이메일/텔레그램/전화 중 선택
-class _SearchTypeButton extends StatelessWidget {
-  final ReportSearchType?            selectedType;
-  final ValueChanged<ReportSearchType?> onSelected;
-
-  const _SearchTypeButton({
-    required this.selectedType,
-    required this.onSelected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final bool isActive = selectedType != null;
-    return PopupMenuButton<String>(
-      onSelected: (value) {
-        if (value == '__ALL__') {
-          onSelected(null);
-        } else {
-          onSelected(
-            ReportSearchType.values.firstWhere((t) => t.value == value),
-          );
-        }
-      },
-      itemBuilder: (_) => [
-        const PopupMenuItem<String>(value: '__ALL__', child: Text('전체')),
-        ...ReportSearchType.values.map(
-              (t) => PopupMenuItem<String>(value: t.value, child: Text(t.label)),
-        ),
-      ],
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isActive ? AppColors.primary : AppColors.gray300,
-            width: isActive ? 1.5 : 1,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.filter_list,
-              size:  16,
-              color: isActive ? AppColors.primary : AppColors.gray500,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              selectedType?.label ?? '검색 유형',
-              style: AppTypography.small12.copyWith(
-                color:      isActive ? AppColors.primary : AppColors.gray500,
-                fontWeight: isActive ? FontWeight.w600  : FontWeight.w400,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -299,11 +247,11 @@ class _KeywordField extends StatelessWidget {
         textInputAction: TextInputAction.search,
         style:           AppTypography.middle14,
         decoration: InputDecoration(
-          hintText:  '검색어를 입력해 주세요',
-          hintStyle: AppTypography.middle14.copyWith(color: AppColors.gray500),
-          prefixIcon: const Icon(Icons.search, color: AppColors.gray500, size: 20),
-          border:           InputBorder.none,
-          contentPadding:   const EdgeInsets.symmetric(vertical: 12),
+          hintText:       '검색어를 입력해 주세요',
+          hintStyle:      AppTypography.middle14.copyWith(color: AppColors.gray500),
+          prefixIcon:     const Icon(Icons.search, color: AppColors.gray500, size: 20),
+          border:         InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(vertical: 12),
         ),
       ),
     );
@@ -368,7 +316,6 @@ class _ReportItemCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // 좌측: 회사명 + 최근 신고 날짜
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -385,11 +332,10 @@ class _ReportItemCard extends StatelessWidget {
               ],
             ),
           ),
-          // 우측: 신고 건수
           Text(
             '신고 ${item.reportCount}건',
             style: AppTypography.largeBold16.copyWith(
-              color:        AppColors.error,
+              color:         AppColors.error,
               letterSpacing: -0.5,
             ),
           ),

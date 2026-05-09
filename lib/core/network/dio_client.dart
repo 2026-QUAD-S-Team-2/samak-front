@@ -2,7 +2,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'api_exception.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -42,7 +42,7 @@ class DioClient {
           final info = await PackageInfo.fromPlatform();
           options.headers['X-App-Version']  = info.version;        // ex) "1.2.3"
           options.headers['X-Build-Number'] = info.buildNumber;    // ex) "45"
-          options.headers['X-Platform']     = kIsWeb ? 'web' : Platform.operatingSystem; // "android" | "ios" | "web"
+          options.headers['X-Platform'] = kIsWeb ? 'web' : defaultTargetPlatform.name.toLowerCase();
           options.headers['X-Request-Id']   = DateTime.now().millisecondsSinceEpoch.toString(); // 요청 추적용
 
           return handler.next(options);
