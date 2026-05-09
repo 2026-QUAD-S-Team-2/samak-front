@@ -1,6 +1,15 @@
 // CityListResponse
 // 도시 id → 한국어 이름 매핑 테이블
-const Map<int, String> _cityKoreanNames = {
+const Map<int, String> cityKoreanNames = {
+  // 대한민국
+  1: '서울특별시',
+  2: '부산광역시',
+  3: '인천광역시',
+  4: '대구광역시',
+  5: '대전광역시',
+  6: '광주광역시',
+  7: '울산광역시',
+  8: '세종특별자치시',
   // 미국
   9:  '뉴욕',
   10: '로스앤젤레스',
@@ -51,5 +60,9 @@ class CityModel {
   }
 
   // 한국어 이름 반환
-  String get displayName => _cityKoreanNames[id] ?? name;
+  String get displayName => cityKoreanNames[id] ?? name;
+
+  // id만으로 한국어 이름 조회하는 정적 메서드
+  static String nameFromId(int id, {String fallback = ''}) =>
+      cityKoreanNames[id] ?? fallback;
 }

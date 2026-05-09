@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../core/design_system/app_colors.dart';
 import '../core/design_system/app_dimensions.dart';
 import '../core/design_system/app_text_styles.dart';
-import '../core/design_system/widgets/app_header.dart';
 import '../core/design_system/widgets/app_dialog.dart';
+import '../core/design_system/app_icons.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/member_repository.dart';
 import '../data/models/member_model.dart';
@@ -72,7 +73,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppHeader(title: '프로필'),
       body: _isLoading
           ? const Center(
         child: CircularProgressIndicator(color: AppColors.primary),
@@ -91,13 +91,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               child: Row(
                 children: [
-                  // [ADDED] 프로필 이미지
-                  CircleAvatar(
-                    radius: 32,
-                    backgroundImage: _member?.profileImageUrl != null
-                        ? NetworkImage(_member!.profileImageUrl!)
-                        : null,
-                    backgroundColor: AppColors.gray900,
+                  // 프로필 이미지
+                  ClipOval(
+                    child: SizedBox(
+                      width: 64,
+                      height: 64,
+                      child: (_member?.profileImageUrl != null &&
+                          _member!.profileImageUrl!.isNotEmpty)
+                          ? Image.network(
+                        _member!.profileImageUrl!,
+                        width: 64,
+                        height: 64,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => SvgPicture.asset(
+                          AppIcons.defaultProfile,
+                          width: 64,
+                          height: 64,
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                          : SvgPicture.asset(
+                        AppIcons.defaultProfile,
+                        width: 64,
+                        height: 64,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(

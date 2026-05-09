@@ -3,6 +3,8 @@
 // POST /api/v1/images/multiple — 다중 이미지 업로드
 import 'package:dio/dio.dart';
 import '../../core/network/dio_client.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:image_picker/image_picker.dart';
 
 class ImageRepository {
   ImageRepository._();
@@ -11,10 +13,24 @@ class ImageRepository {
   /// 단일 이미지 업로드
   // [filePath]: 기기 내 파일 경로 (image_picker로 선택한 XFile.path)
   // 반환값: 서버에 저장된 이미지 파일명 (string)
-  Future<String> uploadSingle(String filePath) async {
-    final formData = FormData.fromMap({
-      'multipartFile': await MultipartFile.fromFile(filePath),
-    });
+  // data/repositories/image_repository.dart 수정 제안
+
+  Future<String> uploadSingle(XFile xFile) async {
+    final FormData formData;
+
+    if (kIsWeb) {
+      // 웹: 바이트 데이터를 읽어서 업로드
+      final bytes = await xFile.readAsBytes();
+      formData = FormData.fromMap({
+        'multipartFile': MultipartFile.fromBytes(bytes, filename: xFile.name),
+      });
+    } else {
+      // 모바일: 기존 방식 유지
+      formData = FormData.fromMap({
+        'multipartFile': await MultipartFile.fromFile(xFile.path),
+      });
+    }
+
     final data = await DioClient.instance.postFormData(
       '/api/v1/images',
       formData: formData,
@@ -25,11 +41,17 @@ class ImageRepository {
   /// 다중 이미지 업로드
   // [filePaths]: 기기 내 파일 경로 목록 (image_picker로 선택한 XFile.path 리스트)
   // 반환값: 서버에 저장된 이미지 파일명 목록 (List<String>)
-  Future<List<String>> uploadMultiple(List<String> filePaths) async {
-    // 파일 경로 목록 → MultipartFile 목록 변환
-    final files = await Future.wait(
-      filePaths.map((path) => MultipartFile.fromFile(path)),
-    );
+  Future<List<String>> uploadMultiple(List<XFile> xFiles) async {
+    final List<MultipartFile> files = [];
+
+    for (var xFile in xFiles) {
+      if (kIsWeb) {
+        final bytes = await xFile.readAsBytes();
+        files.add(MultipartFile.fromBytes(bytes, filename: xFile.name));
+      } else {
+        files.add(await MultipartFile.fromFile(xFile.path));
+      }
+    }
 
     final formData = FormData.fromMap({
       'multipartFiles': files,

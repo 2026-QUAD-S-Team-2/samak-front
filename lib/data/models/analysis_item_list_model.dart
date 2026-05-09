@@ -16,6 +16,7 @@ class AnalysisItemListModel {
   final int id;
   final String companyName;
   final String countryCode;
+  final int cityId;
   final DateTime createdAt;
   final int score;
   final AnalysisStatus status;
@@ -24,6 +25,7 @@ class AnalysisItemListModel {
     required this.id,
     required this.companyName,
     required this.countryCode,
+    required this.cityId,
     required this.createdAt,
     required this.score,
     required this.status,
@@ -37,6 +39,7 @@ class AnalysisItemListModel {
       id:          json['id']          as int,
       companyName: companyName,
       countryCode: json['countryCode'] as String,
+      cityId: json['cityId']           as int,
       createdAt:   DateTime.parse(json['createdAt'] as String),
       score:       (json['score'] as num?)?.toInt() ?? 0,
       status:      _parseStatus(json['status'] as String?),

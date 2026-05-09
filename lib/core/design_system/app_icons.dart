@@ -5,6 +5,7 @@ class AppIcons {
 
   static const String add = '$_basePath/ic_add.svg';
   static const String addFilled = '$_basePath/ic_add_filled.svg';
+  static const String appBarTitle = '$_basePath/ic_appBar_title.svg';
   static const String arrowDown = '$_basePath/ic_arrow-down.svg';
   static const String back = '$_basePath/ic_back.svg';
   static const String badFace = '$_basePath/ic_bad-face.svg';
@@ -14,8 +15,10 @@ class AppIcons {
   static const String chatDotsFilled = '$_basePath/ic_chat-dots_filled.svg';
   static const String clock = '$_basePath/ic_clock.svg';
   static const String creditCard = '$_basePath/ic_credit-card.svg';
+  static const String defaultProfile = '$_basePath/ic_default-profile.svg';
   static const String eye = '$_basePath/ic_eye.svg';
   static const String goodFace = '$_basePath/ic_good-face.svg';
+  static const String googleIcon = '$_basePath/ic_googleicon.png';
   static const String heart = '$_basePath/ic_heart.svg';
   static const String heartFilled = '$_basePath/ic_heart_filled.svg';
   static const String home = '$_basePath/ic_home.svg';

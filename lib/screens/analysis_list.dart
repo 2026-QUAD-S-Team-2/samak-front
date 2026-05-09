@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import '../core/design_system/app_colors.dart';
 import '../core/design_system/app_dimensions.dart';
 import '../core/design_system/app_text_styles.dart';
-import '../core/design_system/widgets/app_header.dart';
+import '../data/models/city_model.dart';
+import '../data/models/country_model.dart';
 import '../screens/analysis_register.dart';
 import '../screens/analysis_result.dart';
 // API 연동
@@ -88,11 +89,6 @@ class _AnalysisListScreenState extends State<AnalysisListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppHeader(
-        title: '분석 전체 리스트',
-        showBackButton: true,
-        onBack: widget.onBackToHome,
-      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
           : _errorMessage != null
@@ -385,7 +381,10 @@ class _AnalysisItemCard extends StatelessWidget {
                   SizedBox(width: 1, height: 32),
                   const Spacer(),
                   // location → countryCode
-                  _InfoColumn(label: '국가 코드', value: item.countryCode),
+                  _InfoColumn(
+                    label: '국가 / 지역',
+                    value: '${CountryModel.nameFromCode(item.countryCode)} / ${CityModel.nameFromId(item.cityId, fallback: '-')}',
+                  ),
                 ],
               ),
             ),
@@ -416,7 +415,7 @@ class _InfoColumn extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           value,
-          style: AppTypography.large16.copyWith(letterSpacing: -0.3),
+          style: AppTypography.middle14.copyWith(letterSpacing: -0.3, color: AppColors.textSecondary),
         ),
       ],
     );

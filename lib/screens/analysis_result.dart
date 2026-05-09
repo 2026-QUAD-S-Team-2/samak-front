@@ -172,7 +172,7 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
             _TrustScoreCard(data: _resultData!),
             AppDimensions.verticalGap16,
             _InfoSection(
-              title: '그래서 \'${_resultData!.companyName}\'는?',
+              title: '\'${_resultData!.companyName}\'는?',
               content: _resultData!.companySummary,
             ),
             AppDimensions.verticalGap16,

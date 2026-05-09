@@ -10,6 +10,10 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   final List<Widget>? actions;
   final bool showBackButton;
   final VoidCallback? onBack;
+  final bool showMenuButton;
+  final VoidCallback? onMenuTap;
+  final String? profileImageUrl;
+  final VoidCallback? onProfileTap;
 
   const AppHeader({
     super.key,
@@ -17,6 +21,10 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
     this.actions,
     this.showBackButton = false,
     this.onBack,
+    this.showMenuButton = false,
+    this.onMenuTap,
+    this.profileImageUrl,
+    this.onProfileTap
   });
 
   @override
@@ -30,32 +38,57 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              Text(
-                title,
-                style: AppTypography.large20,
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (showBackButton)
+                      GestureDetector(
+                        onTap: onBack,
+                        child: SvgPicture.asset(AppIcons.back, width: 32, height: 32),
+                      )
+                    else if (showMenuButton)
+                      GestureDetector(
+                        onTap: onMenuTap,
+                        child: SvgPicture.asset(AppIcons.menu, width: 24, height: 24),
+                      ),
+
+                    const SizedBox(width: 16),
+
+                    title == '사막'
+                        ? SvgPicture.asset(
+                      AppIcons.appBarTitle,
+                      height: 24,
+                    )
+                        : Text(
+                      title,
+                      style: AppTypography.largeBold16.copyWith(fontSize: 18),
+                    ),
+                  ],
+                ),
               ),
 
-              if (showBackButton)
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: GestureDetector(
-                    onTap: onBack,
-                    child: SvgPicture.asset(
-                      AppIcons.back,
+              Align(
+                alignment: Alignment.centerRight,
+                child: GestureDetector(
+                  onTap: onProfileTap,
+                  behavior: HitTestBehavior.opaque,
+                  child: ClipOval(
+                    child: SizedBox(
                       width: 32,
                       height: 32,
+                      child: (profileImageUrl != null && profileImageUrl!.isNotEmpty)
+                          ? Image.network(
+                        profileImageUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => SvgPicture.asset(AppIcons.defaultProfile),
+                      )
+                          : SvgPicture.asset(AppIcons.defaultProfile),
                     ),
                   ),
                 ),
-
-              if (actions != null)
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: actions!,
-                  ),
-                ),
+              ),
             ],
           ),
         ),
