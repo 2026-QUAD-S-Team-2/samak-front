@@ -2,10 +2,11 @@
 // - 검색 유형: _SearchTypeButton(PopupMenu) → AppDropdown, 기본값 companyName, '전체' 제거
 // - 에러 처리: _errorMessage 상태 변수 → AppDialog.show()
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import '../core/design_system/app_icons.dart';
 import '../core/design_system/app_colors.dart';
 import '../core/design_system/app_dimensions.dart';
 import '../core/design_system/app_text_styles.dart';
-import '../core/design_system/widgets/app_dropdown.dart';
 import '../core/design_system/widgets/app_dialog.dart';
 import '../data/repositories/report_repository.dart';
 import '../data/models/report_model.dart';
@@ -109,35 +110,31 @@ class _ReportListScreenState extends State<ReportListScreen> {
           ),
 
           // ── 검색 영역 ──
-          // [MODIFIED] Row(_SearchTypeButton + TextField) →
-          //            Column(AppDropdown + _KeywordField)
-          //            AppDropdown은 인라인으로 아래 방향 확장되므로 Column이 적합
+          // [MODIFIED] Column(AppDropdown + KeywordField) → Row(_CompactDropdown + KeywordField)
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: AppDimensions.screenPadding,
               vertical:   4,
             ),
-            child: Column(
+            child: Row(
               children: [
-                // [MODIFIED] 커스텀 PopupMenu → AppDropdown, 기본값 '회사명', '전체' 없음
-                AppDropdown(
+                _CompactDropdown(
                   value:    _searchType.label,
-                  hintText: '검색 유형을 선택해 주세요',
+                  hintText: '검색 유형',
                   items:    _searchTypeLabels,
                   onChanged: (label) {
-                    if (label == null) return;
                     final type = ReportSearchType.values
                         .firstWhere((t) => t.label == label);
                     setState(() => _searchType = type);
-                    if (_keywordController.text.trim().isNotEmpty) {
-                      _loadItems();
-                    }
+                    if (_keywordController.text.trim().isNotEmpty) _loadItems();
                   },
                 ),
-                const SizedBox(height: 8),
-                _KeywordField(
-                  controller:  _keywordController,
-                  onSubmitted: (_) => _loadItems(),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _KeywordField(
+                    controller:  _keywordController,
+                    onSubmitted: (_) => _loadItems(),
+                  ),
                 ),
               ],
             ),
@@ -340,6 +337,96 @@ class _ReportItemCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// [ADDED] 가로 배치용 소형 드롭다운
+// AppDropdown과 동일한 시각 스타일이지만 showMenu(플로팅 오버레이)로 열려
+// Row 레이아웃에서도 주변 위젯에 영향을 주지 않음
+class _CompactDropdown extends StatelessWidget {
+  final String        value;
+  final String        hintText;
+  final List<String>  items;
+  final ValueChanged<String> onChanged;
+
+  const _CompactDropdown({
+    required this.value,
+    required this.hintText,
+    required this.items,
+    required this.onChanged,
+  });
+
+  void _showMenu(BuildContext context) {
+    final button  = context.findRenderObject() as RenderBox;
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final position = RelativeRect.fromRect(
+      Rect.fromPoints(
+        button.localToGlobal(Offset.zero, ancestor: overlay),
+        button.localToGlobal(button.size.bottomRight(Offset.zero), ancestor: overlay),
+      ),
+      Offset.zero & overlay.size,
+    );
+
+    showMenu<String>(
+      context:  context,
+      position: position,
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      color: Colors.white,
+      items: items.map((item) {
+        final bool isSelected = item == value;
+        return PopupMenuItem<String>(
+          value: item,
+          height: 44,
+          child: Text(
+            item,
+            style: AppTypography.middle14.copyWith(
+              color:      isSelected ? AppColors.primary : AppColors.gray900,
+              fontWeight: isSelected ? FontWeight.w600   : FontWeight.w400,
+            ),
+          ),
+        );
+      }).toList(),
+    ).then((selected) {
+      if (selected != null) onChanged(selected);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => _showMenu(context),
+      child: Container(
+        height: 44,  // _KeywordField와 높이 통일
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.primary, width: 1.5),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              value,
+              style: AppTypography.middle14.copyWith(
+                color:      AppColors.gray900,
+              ),
+            ),
+            const SizedBox(width: 4),
+            SvgPicture.asset(
+              AppIcons.arrowDown,
+              width:  16,
+              height: 16,
+              colorFilter: const ColorFilter.mode(
+                AppColors.primary,
+                BlendMode.srcIn,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
