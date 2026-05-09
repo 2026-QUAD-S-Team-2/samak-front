@@ -82,33 +82,27 @@ class _ReportListScreenState extends State<ReportListScreen> {
           // ── 섹션 헤더 ──
           Padding(
             padding: const EdgeInsets.fromLTRB(
-              AppDimensions.screenPadding,
-              16,
-              AppDimensions.screenPadding,
-              8,
+              24, 28, 24, 8,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   '피해 사례 조회',
-                  style: AppTypography.largeBold16.copyWith(
-                    fontSize:      20,
-                    letterSpacing: -0.5,
-                  ),
+                  style: AppTypography.large20.copyWith(fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 8),
                 Text(
                   '등록된 피해 사례를 확인하고 취업 사기를 예방해보아요.',
                   style: AppTypography.small12.copyWith(
-                    color:         AppColors.textSecondary,
+                    color: AppColors.gray500,
                     letterSpacing: -0.3,
                   ),
                 ),
               ],
             ),
           ),
-
+          const SizedBox(height: 18,),
           // ── 검색 영역 ──
           // [MODIFIED] Column(AppDropdown + KeywordField) → Row(_CompactDropdown + KeywordField)
           Padding(
@@ -140,6 +134,8 @@ class _ReportListScreenState extends State<ReportListScreen> {
             ),
           ),
 
+          const SizedBox(height: 20),
+
           // ── 정렬 칩 ──
           Padding(
             padding: const EdgeInsets.only(
@@ -148,7 +144,7 @@ class _ReportListScreenState extends State<ReportListScreen> {
               bottom: 8,
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 _SortChip(
                   label:      '신고 많은 순',
@@ -229,14 +225,14 @@ class _KeywordField extends StatelessWidget {
 
   const _KeywordField({required this.controller, required this.onSubmitted});
 
+  // [MODIFIED] white → gray100, radius 8 → 32, border 제거, Icon → SvgPicture(gray500 tint)
   @override
   Widget build(BuildContext context) {
     return Container(
       height: 44,
       decoration: BoxDecoration(
-        color:        Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border:       Border.all(color: AppColors.gray300),
+        color:        AppColors.gray100,
+        borderRadius: BorderRadius.circular(32),
       ),
       child: TextField(
         controller:      controller,
@@ -244,9 +240,20 @@ class _KeywordField extends StatelessWidget {
         textInputAction: TextInputAction.search,
         style:           AppTypography.middle14,
         decoration: InputDecoration(
-          hintText:       '검색어를 입력해 주세요',
-          hintStyle:      AppTypography.middle14.copyWith(color: AppColors.gray500),
-          prefixIcon:     const Icon(Icons.search, color: AppColors.gray500, size: 20),
+          hintText:  '검색어를 입력해 주세요',
+          hintStyle: AppTypography.middle14.copyWith(color: AppColors.gray500),
+          prefixIcon: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: SvgPicture.asset(
+              AppIcons.search,
+              width:  20,
+              height: 20,
+              colorFilter: const ColorFilter.mode(
+                AppColors.gray500,
+                BlendMode.srcIn,
+              ),
+            ),
+          ),
           border:         InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 12),
         ),
@@ -271,11 +278,12 @@ class _SortChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
+      // [MODIFIED] borderRadius 20 → 50, 선택 시 fill Colors.white → purple050
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
         decoration: BoxDecoration(
-          color:        isSelected ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
+          color: isSelected ? AppColors.purple050 : Colors.transparent,
+          borderRadius: BorderRadius.circular(50),
           border: Border.all(
             color: isSelected ? AppColors.primary : AppColors.gray300,
             width: 1.5,
@@ -394,25 +402,38 @@ class _CompactDropdown extends StatelessWidget {
     });
   }
 
+  // [MODIFIED] white → gray100, radius 8 → 32, 파란 border 제거
+// [ADDED] ic_search_type 아이콘, arrowDown tint gray500으로 변경
+// [ADDED] value 없을 때 hintText(gray500) 표시
   @override
   Widget build(BuildContext context) {
+    final bool hasValue = value.isNotEmpty;
     return GestureDetector(
       onTap: () => _showMenu(context),
       child: Container(
-        height: 44,  // _KeywordField와 높이 통일
+        height: 44,
         padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.primary, width: 1.5),
+          color:        AppColors.gray100,
+          borderRadius: BorderRadius.circular(32),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            SvgPicture.asset(
+              AppIcons.searchType,
+              width:  18,
+              height: 18,
+              colorFilter: const ColorFilter.mode(
+                AppColors.gray500,
+                BlendMode.srcIn,
+              ),
+            ),
+            const SizedBox(width: 6),
             Text(
-              value,
+              hasValue ? value : hintText,
               style: AppTypography.middle14.copyWith(
-                color:      AppColors.gray900,
+                color: hasValue ? AppColors.gray900 : AppColors.gray500,
               ),
             ),
             const SizedBox(width: 4),
@@ -421,7 +442,7 @@ class _CompactDropdown extends StatelessWidget {
               width:  16,
               height: 16,
               colorFilter: const ColorFilter.mode(
-                AppColors.primary,
+                AppColors.gray500,
                 BlendMode.srcIn,
               ),
             ),
