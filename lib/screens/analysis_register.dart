@@ -181,6 +181,7 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
           _pickedImages, // List<XFile> 전달
         );
       }
+      debugPrint('[AnalysisRegister] 이미지 업로드 완료 - imageNames: $imageNames');
     } on ApiException catch (e) { // catch (e) 대신 on ApiException catch (e) 사용
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -194,18 +195,23 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
     }
 
     try {
-      var result = await AnalysisRepository.instance.createItem(
-        AnalysisItemCreateRequest(
-          imageNames: imageNames,
-          companyName: _companyController.text.trim(),
-          countryCode: _selectedCountry!.code,
-          cityId: _selectedCity!.id,
-          contactType: _channelContactTypeMap[_selectedChannel]!,
-          sourceUrl: _linkController.text.trim(),
-          notes: _etcController.text.trim(),
-          salary: salary ?? 0,
-        ),
+      // [DEBUG] 요청값 확인을 위해 request 객체 변수로 분리
+      final request = AnalysisItemCreateRequest(
+        imageNames: imageNames,
+        companyName: _companyController.text.trim(),
+        countryCode: _selectedCountry!.code,
+        cityId: _selectedCity!.id,
+        contactType: _channelContactTypeMap[_selectedChannel]!,
+        sourceUrl: _linkController.text.trim(),
+        notes: _etcController.text.trim(),
+        salary: salary ?? 0,
       );
+      // [DEBUG] 서버로 보내는 요청값 확인
+      debugPrint('[AnalysisRegister] request json: ${request.toJson()}');
+
+      var result = await AnalysisRepository.instance.createItem(request);
+      // [DEBUG] 서버 응답 raw 확인 (createItem 내부에서 fromJson 호출 전)
+      debugPrint('[AnalysisRegister] createItem 응답 - id: ${result.id}, status: ${result.status}, companyName: ${result.companyName}, countryCode: ${result.countryCode}, sourceUrl: ${result.sourceUrl}, contactType: ${result.contactType}');
 
       // 상태가 COMPLETED가 될 때까지 API 폴링(대기)
       int pollCount = 0;
@@ -216,6 +222,7 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
           pollCount < maxPollCount) {
         await Future.delayed(const Duration(seconds: 3));
         result = await AnalysisRepository.instance.getDetail(result.id);
+        debugPrint('[AnalysisRegister] 폴링 $pollCount회 - status: ${result.status}');
         pollCount++;
       }
 

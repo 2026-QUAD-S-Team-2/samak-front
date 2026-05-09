@@ -1,4 +1,5 @@
 // AnalysisItemDetailResponse
+import 'package:flutter/foundation.dart';
 import 'analysis_item_list_model.dart';
 
 class AnalysisItemDetailModel {
@@ -25,6 +26,8 @@ class AnalysisItemDetailModel {
   });
 
   factory AnalysisItemDetailModel.fromJson(Map<String, dynamic> json) {
+    debugPrint('[AnalysisItemDetailModel] raw json: $json');
+
     return AnalysisItemDetailModel(
       id:          json['id']          as int,
       sourceUrl:   json['sourceUrl']   as String,

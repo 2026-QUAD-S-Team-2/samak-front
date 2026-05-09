@@ -10,6 +10,7 @@ import 'screens/loading_screen.dart';
 import 'screens/profile_screen.dart';
 import 'data/repositories/member_repository.dart';
 import 'data/models/member_model.dart';
+import 'screens/report_list.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -153,7 +154,7 @@ class _MainScreenState extends State<MainScreen> {
       HomeScreen(
         onProfileTap: () => setState(() => _selectedIndex = 4),
       ),
-      _PlaceholderScreen(title: '소식'),
+      const ReportListScreen(),
       AnalysisListScreen(
         key: ValueKey(_selectedIndex),
         onBackToHome: () => setState(() => _selectedIndex = 0),
