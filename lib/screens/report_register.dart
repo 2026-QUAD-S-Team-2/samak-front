@@ -178,10 +178,32 @@ class _ReportRegisterScreenState extends State<ReportRegisterScreen> {
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppDimensions.screenPadding),
+        padding: const EdgeInsets.all(AppDimensions.screenPadding + 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ── 섹션 헤더 ──
+            Padding(
+              padding: const EdgeInsets.only(right: 15),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '피해 사례 등록',
+                    style: AppTypography.large20.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '피해 관련 정보를 입력해 주세요.',
+                    style: AppTypography.small12.copyWith(
+                      color: AppColors.gray500,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18,),
 
             // ── 섹션 헤더: 기본 정보 ──
             _SectionHeader(title: '기본 정보'),

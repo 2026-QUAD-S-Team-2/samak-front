@@ -100,7 +100,30 @@ class _AnalysisListScreenState extends State<AnalysisListScreen> {
               ),
             )
           :Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // ── 섹션 헤더 ──
+              Padding(
+                padding: const EdgeInsets.only(left: 24, top: 28),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '분석 전체 리스트',
+                      style: AppTypography.large20.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '등록한 공고들의 분석 리스트입니다.',
+                      style: AppTypography.small12.copyWith(
+                        color: AppColors.gray500,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 18,),
           // ── 검색 바 ──
           Container(
             margin: EdgeInsetsGeometry.symmetric(vertical: 8, horizontal: 16),

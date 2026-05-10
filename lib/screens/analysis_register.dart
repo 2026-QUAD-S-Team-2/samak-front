@@ -311,13 +311,36 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.all(AppDimensions.cardPadding),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-          ),
+          // decoration: BoxDecoration(
+          //   // color: Colors.white,
+          //   borderRadius: BorderRadius.circular(12),
+          // ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // ── 섹션 헤더 ──
+              // Padding(
+                // padding: const EdgeInsets.only(left: 16),
+                // child:
+          Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '공고 분석 등록',
+                      style: AppTypography.large20.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '분석할 공고의 정보를 입력해 주세요.',
+                      style: AppTypography.small12.copyWith(
+                        color: AppColors.gray500,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                  ],
+               //  ),
+              ),
+              const SizedBox(height: 18,),
               // ── 이미지 섹션 ──
               const _SectionLabel(label: '이미지', isRequired: true),
               const SizedBox(height: 4),
