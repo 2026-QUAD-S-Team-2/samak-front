@@ -11,6 +11,7 @@ import 'screens/profile_screen.dart';
 import 'data/repositories/member_repository.dart';
 import 'data/models/member_model.dart';
 import 'screens/report_list.dart';
+import 'data/repositories/auth_repository.dart'; // [MODIFIED] 로그아웃을 위한 AuthRepository import 추가
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -72,6 +73,47 @@ class _MainScreenState extends State<MainScreen> {
     Navigator.of(context).pop();
   }
 
+  // [MODIFIED] 로그아웃 처리 메서드 추가
+  Future<void> _onLogout() async {
+    try {
+      await AuthRepository.instance.logout();
+    } catch (e) {
+      debugPrint('로그아웃 실패: $e');
+    }
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoadingScreen()),
+          (route) => false,
+    );
+  }
+
+  // [MODIFIED] 선택 여부에 따라 아이콘·텍스트 색상을 분기하는 Drawer 메뉴 항목 빌더 추가
+  Widget _buildDrawerItem({
+    required String icon,
+    required String filledIcon,
+    required String label,
+    required int index,
+  }) {
+    final bool isSelected = _selectedIndex == index;
+    final Color contentColor = isSelected ? AppColors.gray900 : AppColors.gray500;
+    return ListTile(
+      leading: SvgPicture.asset(
+        isSelected ? filledIcon : icon,
+        width: 20,
+        height: 20,
+        colorFilter: ColorFilter.mode(contentColor, BlendMode.srcIn),
+      ),
+      title: Text(
+        label,
+        style: AppTypography.middle14.copyWith(
+          color: contentColor,
+          letterSpacing: -0.3,
+        ),
+      ),
+      onTap: () => _onItemTapped(index),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -85,64 +127,121 @@ class _MainScreenState extends State<MainScreen> {
         onProfileTap: () {
           setState(() {
             _selectedIndex = 4;
-          },);
+          });
         },
       ),
+      // [MODIFIED] 사이드바 디자인 전면 변경: 로고+X 헤더 / 선택 시 Filled 아이콘 / 하단 로그아웃+프로필
       drawer: Drawer(
-        width: MediaQuery.of(context).size.width * 0.65,
+        width: MediaQuery.of(context).size.width * 0.75,
         backgroundColor: AppColors.surfacePrimary,
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: const BoxDecoration(color: AppColors.primary),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _member != null ? '${_member!.nickname} 님' : '사용자님',
-                    style: AppTypography.large20.copyWith(color: Colors.white, letterSpacing: -0.3),
-                  ),
-                  SizedBox(height: 5),
-                  Text(
-                    _member?.email ?? '',
-                    style: AppTypography.small12.copyWith(color: AppColors.purple100),
-                  ),
-                ],
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // 헤더: 앱 로고 + X 닫기 버튼
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                child: Row(
+                  children: [
+                    SvgPicture.asset(AppIcons.appBarTitle, height: 24),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: const Icon(Icons.close, size: 24, color: AppColors.gray900),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            ListTile(
-              leading: SvgPicture.asset(AppIcons.homeFilled, width: 20, height: 20),
-              title: Text('홈', style: AppTypography.middle14.copyWith(color: AppColors.gray900, letterSpacing: -0.3),
+              const SizedBox(height: 8),
+              // 메뉴 항목: 선택 시 Filled 아이콘 + 진한 색, 미선택 시 outline 아이콘 + 회색
+              _buildDrawerItem(
+                icon: AppIcons.home,
+                filledIcon: AppIcons.homeFilled,
+                label: '홈',
+                index: 0,
               ),
-              selected: _selectedIndex == 0,
-              onTap: () => _onItemTapped(0),
-            ),
-            ListTile(
-              leading: SvgPicture.asset(AppIcons.heartFilled, width: 20, height: 20),
-              title: Text('소식', style: AppTypography.middle14.copyWith(color: AppColors.gray900, letterSpacing: -0.3)),
-              selected: _selectedIndex == 1,
-              onTap: () => _onItemTapped(1),
-            ),
-            ListTile(
-              leading: SvgPicture.asset(AppIcons.addFilled, width: 20, height: 20),
-              title: Text('분석', style: AppTypography.middle14.copyWith(color: AppColors.gray900, letterSpacing: -0.3),),
-              selected: _selectedIndex == 2,
-              onTap: () => _onItemTapped(2),
-            ),
-            ListTile(
-              leading: SvgPicture.asset(AppIcons.chatDotsFilled, width: 20, height: 20),
-              title: Text('게시판', style: AppTypography.middle14.copyWith(color: AppColors.gray900, letterSpacing: -0.3),),
-              selected: _selectedIndex == 3,
-              onTap: () => _onItemTapped(3),
-            ),
-            ListTile(
-              leading: SvgPicture.asset(AppIcons.userFilled, width: 20, height: 20),
-              title: Text('프로필', style: AppTypography.middle14.copyWith(color: AppColors.gray900, letterSpacing: -0.3),),
-              selected: _selectedIndex == 4,
-              onTap: () => _onItemTapped(4),
-            ),
-          ],
+              _buildDrawerItem(
+                icon: AppIcons.heart,
+                filledIcon: AppIcons.heartFilled,
+                label: '소식',
+                index: 1,
+              ),
+              _buildDrawerItem(
+                icon: AppIcons.add,
+                filledIcon: AppIcons.addFilled,
+                label: '분석',
+                index: 2,
+              ),
+              _buildDrawerItem(
+                icon: AppIcons.chatDots,
+                filledIcon: AppIcons.chatDotsFilled,
+                label: '게시판',
+                index: 3,
+              ),
+              _buildDrawerItem(
+                icon: AppIcons.user,
+                filledIcon: AppIcons.userFilled,
+                label: '프로필',
+                index: 4,
+              ),
+              const Spacer(),
+              // 로그아웃 버튼
+              ListTile(
+                leading: const Icon(Icons.logout, size: 20, color: AppColors.gray500),
+                title: Text(
+                  '로그아웃',
+                  style: AppTypography.middle14.copyWith(
+                    color: AppColors.gray500,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                onTap: _onLogout,
+              ),
+              const Divider(height: 1, color: AppColors.gray200),
+              // 하단 사용자 프로필 영역
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    ClipOval(
+                      child: SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: (_member?.profileImageUrl != null &&
+                            _member!.profileImageUrl!.isNotEmpty)
+                            ? Image.network(
+                          _member!.profileImageUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) =>
+                              SvgPicture.asset(AppIcons.defaultProfile),
+                        )
+                            : SvgPicture.asset(AppIcons.defaultProfile),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _member != null ? '${_member!.nickname}님' : '사용자님',
+                          style: AppTypography.middle14.copyWith(
+                            color: AppColors.gray900,
+                            letterSpacing: -0.3,
+                          ),
+                        ),
+                        Text(
+                          _member?.email ?? '',
+                          style: AppTypography.small12.copyWith(
+                            color: AppColors.gray500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       body: _buildScreens()[_selectedIndex],
@@ -172,7 +271,7 @@ class _MainScreenState extends State<MainScreen> {
     '프로필',
   ];
 
-  /*
+/*
   @override
   Widget build(BuildContext context) {
     final bool showAppBar = _selectedIndex != 0 && _selectedIndex != 2 && _selectedIndex != 4;
