@@ -340,7 +340,11 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
                   ],
                //  ),
               ),
-              const SizedBox(height: 18,),
+              const SizedBox(height: 36,),
+
+              _SectionHeader(title: '기본 정보'),
+              AppDimensions.verticalGap16,
+
               // ── 이미지 섹션 ──
               const _SectionLabel(label: '이미지', isRequired: true),
               const SizedBox(height: 4),
@@ -382,7 +386,10 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
                 hintText: 'ex) www.wanted.com',
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 48),
+
+              _SectionHeader(title: '회사 정보'),
+              AppDimensions.verticalGap16,
 
               // ── 회사 ──
               const _SectionLabel(label: '회사', isRequired: true),
@@ -439,7 +446,10 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
                 },
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 48),
+
+              _SectionHeader(title: '추가 정보'),
+              AppDimensions.verticalGap16,
 
               // ── 채널(연락 수단) 드롭다운 ──
               const _SectionLabel(label: '연락 수단', isRequired: true),
@@ -531,6 +541,22 @@ class _SectionLabel extends StatelessWidget {
             style: AppTypography.middleBold15.copyWith(color: AppColors.error),
           ),
       ],
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  const _SectionHeader({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      title,
+      style: AppTypography.largeBold16.copyWith(
+        fontSize:      18,
+        letterSpacing: -0.5,
+      ),
     );
   }
 }
