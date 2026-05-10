@@ -11,6 +11,8 @@ import 'package:image_picker/image_picker.dart';
 import '../data/repositories/country_repository.dart';
 import '../data/repositories/analysis_repository.dart';
 import '../data/repositories/image_repository.dart';
+import '../data/repositories/member_repository.dart';
+import '../screens/profile_screen.dart';
 import '../data/models/country_model.dart';
 import '../data/models/city_model.dart';
 import '../data/models/analysis_item_create_request.dart';
@@ -51,6 +53,7 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
   CountryModel? _selectedCountry;
   CityModel? _selectedCity;
   String? _selectedChannel;
+  String? _profileImageUrl;
 
   static const Map<String, String> _channelContactTypeMap = {
     '이메일':   'EMAIL',
@@ -67,6 +70,7 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
   void initState() {
     super.initState();
     _loadCountries();
+    _loadProfile();
   }
 
   @override
@@ -114,6 +118,13 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
     } finally {
       setState(() => _isLoadingCities = false);
     }
+  }
+
+  Future<void> _loadProfile() async {
+    try {
+      final member = await MemberRepository.instance.getMe();
+      if (mounted) setState(() => _profileImageUrl = member.profileImageUrl);
+    } catch (_) {}
   }
 
   // 이미지 추가 (최대 4장)
@@ -181,6 +192,7 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
           _pickedImages, // List<XFile> 전달
         );
       }
+      debugPrint('[AnalysisRegister] 이미지 업로드 완료 - imageNames: $imageNames');
     } on ApiException catch (e) { // catch (e) 대신 on ApiException catch (e) 사용
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -194,18 +206,23 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
     }
 
     try {
-      var result = await AnalysisRepository.instance.createItem(
-        AnalysisItemCreateRequest(
-          imageNames: imageNames,
-          companyName: _companyController.text.trim(),
-          countryCode: _selectedCountry!.code,
-          cityId: _selectedCity!.id,
-          contactType: _channelContactTypeMap[_selectedChannel]!,
-          sourceUrl: _linkController.text.trim(),
-          notes: _etcController.text.trim(),
-          salary: salary ?? 0,
-        ),
+      // [DEBUG] 요청값 확인을 위해 request 객체 변수로 분리
+      final request = AnalysisItemCreateRequest(
+        imageNames: imageNames,
+        companyName: _companyController.text.trim(),
+        countryCode: _selectedCountry!.code,
+        cityId: _selectedCity!.id,
+        contactType: _channelContactTypeMap[_selectedChannel]!,
+        sourceUrl: _linkController.text.trim(),
+        notes: _etcController.text.trim(),
+        salary: salary ?? 0,
       );
+      // [DEBUG] 서버로 보내는 요청값 확인
+      debugPrint('[AnalysisRegister] request json: ${request.toJson()}');
+
+      var result = await AnalysisRepository.instance.createItem(request);
+      // [DEBUG] 서버 응답 raw 확인 (createItem 내부에서 fromJson 호출 전)
+      debugPrint('[AnalysisRegister] createItem 응답 - id: ${result.id}, status: ${result.status}, companyName: ${result.companyName}, countryCode: ${result.countryCode}, sourceUrl: ${result.sourceUrl}, contactType: ${result.contactType}');
 
       // 상태가 COMPLETED가 될 때까지 API 폴링(대기)
       int pollCount = 0;
@@ -216,6 +233,7 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
           pollCount < maxPollCount) {
         await Future.delayed(const Duration(seconds: 3));
         result = await AnalysisRepository.instance.getDetail(result.id);
+        debugPrint('[AnalysisRegister] 폴링 $pollCount회 - status: ${result.status}');
         pollCount++;
       }
 
@@ -280,22 +298,53 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppHeader(
-        title: '공고 분석 등록',
+        title:          '공고 분석 등록',
         showBackButton: true,
         onBack: widget.onBack ?? () => Navigator.of(context).maybePop(),
+        profileImageUrl: _profileImageUrl, // [ADDED]
+        onProfileTap: () => Navigator.of(context).push( // [ADDED]
+          MaterialPageRoute(builder: (_) => const ProfileScreen()),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppDimensions.screenPadding),
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.all(AppDimensions.cardPadding),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-          ),
+          // decoration: BoxDecoration(
+          //   // color: Colors.white,
+          //   borderRadius: BorderRadius.circular(12),
+          // ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // ── 섹션 헤더 ──
+              // Padding(
+                // padding: const EdgeInsets.only(left: 16),
+                // child:
+          Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '공고 분석 등록',
+                      style: AppTypography.large20.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '분석할 공고의 정보를 입력해 주세요.',
+                      style: AppTypography.small12.copyWith(
+                        color: AppColors.gray500,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                  ],
+               //  ),
+              ),
+              const SizedBox(height: 36,),
+
+              _SectionHeader(title: '기본 정보'),
+              AppDimensions.verticalGap16,
+
               // ── 이미지 섹션 ──
               const _SectionLabel(label: '이미지', isRequired: true),
               const SizedBox(height: 4),
@@ -337,7 +386,10 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
                 hintText: 'ex) www.wanted.com',
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 48),
+
+              _SectionHeader(title: '회사 정보'),
+              AppDimensions.verticalGap16,
 
               // ── 회사 ──
               const _SectionLabel(label: '회사', isRequired: true),
@@ -394,7 +446,10 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
                 },
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 48),
+
+              _SectionHeader(title: '추가 정보'),
+              AppDimensions.verticalGap16,
 
               // ── 채널(연락 수단) 드롭다운 ──
               const _SectionLabel(label: '연락 수단', isRequired: true),
@@ -486,6 +541,22 @@ class _SectionLabel extends StatelessWidget {
             style: AppTypography.middleBold15.copyWith(color: AppColors.error),
           ),
       ],
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  const _SectionHeader({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      title,
+      style: AppTypography.largeBold16.copyWith(
+        fontSize:      18,
+        letterSpacing: -0.5,
+      ),
     );
   }
 }

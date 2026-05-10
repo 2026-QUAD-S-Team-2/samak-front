@@ -33,6 +33,7 @@ class AppIcons {
   static const String protect = '$_basePath/ic_protect.svg';
   static const String questionCircle = '$_basePath/ic_question-circle.svg';
   static const String search = '$_basePath/ic_search.svg';
+  static const String searchType = '$_basePath/ic_search_type.svg';
   static const String settings = '$_basePath/ic_settings.svg';
   static const String settingsLine = '$_basePath/ic_settings-line.svg';
   static const String title = '$_basePath/ic_title.svg';

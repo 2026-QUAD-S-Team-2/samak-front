@@ -1,7 +1,11 @@
 // Dio 싱글톤 클라이언트. auth_token 자동 주입 인터셉터 포함.
+import 'dart:io';
+
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'api_exception.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class DioClient {
   DioClient._();
@@ -32,9 +36,15 @@ class DioClient {
       InterceptorsWrapper(
         onRequest: (options, handler) async {
           final token = await _storage.read(key: 'auth_token');
-          if (token != null) {
-            options.headers['Authorization'] = 'Bearer $token';
-          }
+          if (token != null) options.headers['Authorization'] = 'Bearer $token';
+
+          // 서버가 에러 원인 파악에 활용할 수 있는 메타데이터
+          final info = await PackageInfo.fromPlatform();
+          options.headers['X-App-Version']  = info.version;        // ex) "1.2.3"
+          options.headers['X-Build-Number'] = info.buildNumber;    // ex) "45"
+          options.headers['X-Platform'] = kIsWeb ? 'web' : defaultTargetPlatform.name.toLowerCase();
+          options.headers['X-Request-Id']   = DateTime.now().millisecondsSinceEpoch.toString(); // 요청 추적용
+
           return handler.next(options);
         },
 

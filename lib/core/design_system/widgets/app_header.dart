@@ -56,15 +56,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
 
                     const SizedBox(width: 16),
 
-                    title == '사막'
-                        ? SvgPicture.asset(
-                      AppIcons.appBarTitle,
-                      height: 24,
-                    )
-                        : Text(
-                      title,
-                      style: AppTypography.largeBold16.copyWith(fontSize: 18),
-                    ),
+                    SvgPicture.asset(AppIcons.appBarTitle, height: 24),
                   ],
                 ),
               ),
