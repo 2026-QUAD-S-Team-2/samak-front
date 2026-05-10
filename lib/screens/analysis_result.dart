@@ -5,6 +5,8 @@ import '../core/design_system/app_dimensions.dart';
 import '../core/design_system/app_text_styles.dart';
 import '../core/design_system/widgets/app_header.dart';
 import '../core/design_system/app_icons.dart';
+import '../data/repositories/member_repository.dart';
+import '../screens/profile_screen.dart';
 // API 연동
 import '../data/repositories/analysis_repository.dart';
 import '../data/models/ai_analysis_result_model.dart';
@@ -54,11 +56,13 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
   AnalysisResultData? _resultData;
   static const Duration _pollInterval = Duration(seconds: 3);
   static const int _maxPollCount = 20; // 최대 60초 대기
+  String? _profileImageUrl;
 
   @override
   void initState() {
     super.initState();
     _loadResult();
+    _loadProfile();
   }
 
   // 3개 API 병렬 호출 후 AnalysisResultData로 변환
@@ -144,14 +148,26 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
     }
   }
 
+  Future<void> _loadProfile() async {
+    try {
+      final member = await MemberRepository.instance.getMe();
+      if (mounted) setState(() => _profileImageUrl = member.profileImageUrl);
+    } catch (_) {}
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppHeader(
-        title: '공고 분석 결과',
+        title:          '공고 분석 결과',
         showBackButton: true,
         onBack: widget.onBack ?? () => Navigator.of(context).maybePop(),
+        profileImageUrl: _profileImageUrl, // [ADDED]
+        onProfileTap: () => Navigator.of(context).push( // [ADDED]
+          MaterialPageRoute(builder: (_) => const ProfileScreen()),
+        ),
       ),
       // [ADDED] 로딩 / 에러 / 성공 상태 분기
       body: _isLoading

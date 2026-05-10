@@ -11,6 +11,8 @@ import 'package:image_picker/image_picker.dart';
 import '../data/repositories/country_repository.dart';
 import '../data/repositories/analysis_repository.dart';
 import '../data/repositories/image_repository.dart';
+import '../data/repositories/member_repository.dart';
+import '../screens/profile_screen.dart';
 import '../data/models/country_model.dart';
 import '../data/models/city_model.dart';
 import '../data/models/analysis_item_create_request.dart';
@@ -51,6 +53,7 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
   CountryModel? _selectedCountry;
   CityModel? _selectedCity;
   String? _selectedChannel;
+  String? _profileImageUrl;
 
   static const Map<String, String> _channelContactTypeMap = {
     '이메일':   'EMAIL',
@@ -67,6 +70,7 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
   void initState() {
     super.initState();
     _loadCountries();
+    _loadProfile();
   }
 
   @override
@@ -114,6 +118,13 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
     } finally {
       setState(() => _isLoadingCities = false);
     }
+  }
+
+  Future<void> _loadProfile() async {
+    try {
+      final member = await MemberRepository.instance.getMe();
+      if (mounted) setState(() => _profileImageUrl = member.profileImageUrl);
+    } catch (_) {}
   }
 
   // 이미지 추가 (최대 4장)
@@ -287,9 +298,13 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppHeader(
-        title: '공고 분석 등록',
+        title:          '공고 분석 등록',
         showBackButton: true,
         onBack: widget.onBack ?? () => Navigator.of(context).maybePop(),
+        profileImageUrl: _profileImageUrl, // [ADDED]
+        onProfileTap: () => Navigator.of(context).push( // [ADDED]
+          MaterialPageRoute(builder: (_) => const ProfileScreen()),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppDimensions.screenPadding),

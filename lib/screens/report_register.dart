@@ -13,6 +13,8 @@ import '../data/repositories/image_repository.dart';
 import '../data/models/report_model.dart';
 import '../core/network/api_exception.dart';
 import '../core/design_system/widgets/app_dialog.dart';
+import '../data/repositories/member_repository.dart';
+import '../screens/profile_screen.dart';
 
 class ReportRegisterScreen extends StatefulWidget {
   final VoidCallback? onBack;
@@ -31,6 +33,7 @@ class _ReportRegisterScreenState extends State<ReportRegisterScreen> {
 
   String? _selectedContactType;
   bool    _isSubmitting = false;
+  String? _profileImageUrl;
 
   final ImagePicker    _imagePicker  = ImagePicker();
   final List<XFile>    _pickedImages = [];
@@ -54,12 +57,25 @@ class _ReportRegisterScreenState extends State<ReportRegisterScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  @override
   void dispose() {
     _companyController.dispose();
     _contactValueController.dispose();
     _reasonController.dispose();
     _evidenceController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadProfile() async {
+    try {
+      final member = await MemberRepository.instance.getMe();
+      if (mounted) setState(() => _profileImageUrl = member.profileImageUrl);
+    } catch (_) {}
   }
 
   // 이미지 추가 (최대 4장, analysis_register.dart와 동일한 패턴)
@@ -156,6 +172,10 @@ class _ReportRegisterScreenState extends State<ReportRegisterScreen> {
         title:          '피해 사례 등록',
         showBackButton: true,
         onBack: widget.onBack ?? () => Navigator.of(context).maybePop(),
+        profileImageUrl: _profileImageUrl, // [ADDED]
+        onProfileTap: () => Navigator.of(context).push( // [ADDED]
+          MaterialPageRoute(builder: (_) => const ProfileScreen()),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppDimensions.screenPadding),
