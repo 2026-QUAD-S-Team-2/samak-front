@@ -3,7 +3,7 @@ class NewsModel {
   final int id;
   final String title;
   final String summary;
-  final String link;
+  final String? link;
   final String backgroundImageUrl;
 
   const NewsModel({
@@ -19,7 +19,7 @@ class NewsModel {
       id:                 json['id']                 as int,
       title:              json['title']              as String,
       summary:            json['summary']            as String,
-      link:               json['link']               as String,
+      link:               json['link']               as String?,
       backgroundImageUrl: json['backgroundImageUrl'] as String,
     );
   }

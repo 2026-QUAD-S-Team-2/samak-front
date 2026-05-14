@@ -220,7 +220,7 @@ class _BannerCardState extends State<_BannerCard> {
               final news = widget.newsList[index];
 
               return GestureDetector(
-                onTap: () => _openLink(news.link),
+                onTap: news.link != null ? () => _openLink(news.link!) : null,
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
