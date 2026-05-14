@@ -90,10 +90,11 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
           // debugPrint('[AnalysisResult] aiResult: riskScore=${aiResult.riskScore}, riskLevel=${aiResult.riskLevel}');
           // debugPrint('[AnalysisResult] warning: ${warning.warningMessage}');
 
-          final trustLevel = switch (aiResult.riskLevel.toUpperCase()) {
-            'LOW'    => TrustLevel.good,
-            'MEDIUM' => TrustLevel.normal,
-            _        => TrustLevel.bad,
+          // [수정] riskLevel 문자열 대신 riskScore 숫자 기준으로 trustLevel 결정
+          final trustLevel = switch (100 - aiResult.riskScore) {
+            >= 70 => TrustLevel.good,
+            >= 40 => TrustLevel.normal,
+            _     => TrustLevel.bad,
           };
 
           setState(() {
@@ -245,9 +246,11 @@ class _TrustScoreCardState extends State<_TrustScoreCard> {
   }
 
   String get _scoreIconPath {
-    if (widget.data.trustScore >= 70) return AppIcons.goodFace;
-    if (widget.data.trustScore >= 40) return AppIcons.normalFace;
-    return AppIcons.badFace;
+    switch (widget.data.trustLevel) {
+      case TrustLevel.good:   return AppIcons.goodFace;
+      case TrustLevel.normal: return AppIcons.normalFace;
+      case TrustLevel.bad:    return AppIcons.badFace;
+    }
   }
 
   @override
