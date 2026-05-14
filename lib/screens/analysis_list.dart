@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import '../core/design_system/app_colors.dart';
 import '../core/design_system/app_dimensions.dart';
 import '../core/design_system/app_text_styles.dart';
-import '../data/models/city_model.dart';
-import '../data/models/country_model.dart';
 import '../screens/analysis_register.dart';
 import '../screens/analysis_result.dart';
 // API 연동
@@ -406,7 +404,7 @@ class _AnalysisItemCard extends StatelessWidget {
                   // location → countryCode
                   _InfoColumn(
                     label: '국가 / 지역',
-                    value: '${CountryModel.nameFromCode(item.countryCode)} / ${CityModel.nameFromId(item.cityId, fallback: '-')}',
+                    value: '${item.countryName} / ${item.cityName}',
                   ),
                 ],
               ),
