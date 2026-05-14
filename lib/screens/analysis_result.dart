@@ -162,7 +162,7 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppHeader(
-        title:          '공고 분석 결과',
+        title: '공고 분석 결과',
         showBackButton: true,
         onBack: widget.onBack ?? () => Navigator.of(context).maybePop(),
         profileImageUrl: _profileImageUrl, // [ADDED]
@@ -186,6 +186,28 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // [수정] 페이지 헤더 추가
+            Padding(
+              padding: const EdgeInsets.all(AppDimensions.cardPadding),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '공고 분석 결과',
+                    style: AppTypography.large20.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '사막AI가 분석한 공고의 신뢰도입니다.',
+                    style: AppTypography.small12.copyWith(
+                      color: AppColors.gray500,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            AppDimensions.verticalGap16,
             _TrustScoreCard(data: _resultData!),
             AppDimensions.verticalGap16,
             _InfoSection(
@@ -236,12 +258,9 @@ class _TrustScoreCardState extends State<_TrustScoreCard> {
 
   String get _levelLabel {
     switch (widget.data.trustLevel) {
-      case TrustLevel.good:
-        return 'Good';
-      case TrustLevel.bad:
-        return 'Bad';
-      case TrustLevel.normal:
-        return 'Normal';
+      case TrustLevel.good:   return '안전'; // [수정] Good → 안전
+      case TrustLevel.bad:    return '위험'; // [수정] Bad → 위험
+      case TrustLevel.normal: return '주의'; // [수정] Normal → 주의
     }
   }
 
@@ -258,10 +277,6 @@ class _TrustScoreCardState extends State<_TrustScoreCard> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppDimensions.cardPadding),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -443,10 +458,10 @@ class _InfoSection extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppDimensions.cardPadding),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
+      // decoration: BoxDecoration(
+      //   color: Colors.white,
+      //   borderRadius: BorderRadius.circular(12),
+      // ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
