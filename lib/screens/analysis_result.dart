@@ -281,74 +281,80 @@ class _TrustScoreCardState extends State<_TrustScoreCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── 헤더 행: AI 신뢰도 + 레벨 뱃지 + 물음표 아이콘 + [툴팁] ──
-          Row(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2.0),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _levelColor,
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                      child: Text(
+                        _levelLabel,
+                        style: AppTypography.middleBold15.copyWith(
+                          color: Colors.white,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(width: 6,),
+
+                  GestureDetector(
+                    onTap: () => setState(() => _showTooltip = !_showTooltip),
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 2.0),
+                      child: SvgPicture.asset(
+                        AppIcons.questionCircle,
+                        width: 20,
+                        height: 20,
+                        colorFilter: ColorFilter.mode(
+                          _showTooltip ? AppColors.gray900 : AppColors.gray500,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  if (_showTooltip) ...[
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.purple050,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: Text(
+                          '신뢰도는 AI가 분석한 결과를 기반으로 제공되므로 재차 확인을 권장드립니다.',
+                          style: AppTypography.small8.copyWith(
+                            color: AppColors.gray900,
+                            height: 1.0,
+                          ),
+                          softWrap: true,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+
+              const SizedBox(height: 8),
+
               Padding(
                 padding: const EdgeInsets.only(top: 2.0),
                 child: Text(
-                  'AI 신뢰도',
-                  style: AppTypography.largeBold16.copyWith(letterSpacing: -0.5),
+                  'AI 신뢰도 ${widget.data.trustScore}%',
+                  style: AppTypography.large20.copyWith(letterSpacing: -0.5, fontWeight: FontWeight.w500),
                 ),
               ),
               const SizedBox(width: 8),
-
-              Padding(
-                padding: const EdgeInsets.only(top: 2.0),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: _levelColor,
-                    borderRadius: BorderRadius.circular(100),
-                  ),
-                  child: Text(
-                    _levelLabel,
-                    style: AppTypography.small12.copyWith(
-                      color: Colors.black,
-                      letterSpacing: -0.3,
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(width: 6),
-
-              GestureDetector(
-                onTap: () => setState(() => _showTooltip = !_showTooltip),
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 2.0),
-                  child: SvgPicture.asset(
-                    AppIcons.questionCircle,
-                    width: 20,
-                    height: 20,
-                    colorFilter: ColorFilter.mode(
-                      _showTooltip ? AppColors.gray900 : AppColors.gray500,
-                      BlendMode.srcIn,
-                    ),
-                  ),
-                ),
-              ),
-
-              if (_showTooltip) ...[
-                const SizedBox(width: 4),
-                Flexible(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppColors.purple050,
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    child: Text(
-                      '신뢰도는 AI가 분석한 결과를 기반으로 제공되므로 재차 확인을 권장드립니다.',
-                      style: AppTypography.small8.copyWith(
-                        color: AppColors.gray900,
-                        height: 1.0,
-                      ),
-                      softWrap: true,
-                    ),
-                  ),
-                ),
-              ],
             ],
           ),
 
