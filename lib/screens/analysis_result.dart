@@ -34,6 +34,14 @@ class AnalysisResultData {
   });
 }
 
+Color trustLevelColor(TrustLevel level) {
+  switch (level) {
+    case TrustLevel.good:   return AppColors.success;
+    case TrustLevel.normal: return AppColors.warning;
+    case TrustLevel.bad:    return AppColors.error;
+  }
+}
+
 // 공고 분석 결과 화면
 class AnalysisResultScreen extends StatefulWidget {
   final VoidCallback? onBack;
@@ -55,7 +63,7 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
   String? _errorMessage;
   AnalysisResultData? _resultData;
   static const Duration _pollInterval = Duration(seconds: 3);
-  static const int _maxPollCount = 20; // 최대 60초 대기
+  static const int _maxPollCount = 30;
   String? _profileImageUrl;
 
   @override
@@ -160,7 +168,9 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+        backgroundColor: _resultData != null
+            ? trustLevelColor(_resultData!.trustLevel).withOpacity(0.05)
+            : AppColors.background,
       appBar: AppHeader(
         title: '공고 분석 결과',
         showBackButton: true,
@@ -245,16 +255,7 @@ class _TrustScoreCard extends StatefulWidget {
 class _TrustScoreCardState extends State<_TrustScoreCard> {
   bool _showTooltip = false;
 
-  Color get _levelColor {
-    switch (widget.data.trustLevel) {
-      case TrustLevel.good:
-        return AppColors.success;
-      case TrustLevel.bad:
-        return AppColors.error;
-      case TrustLevel.normal:
-        return AppColors.warning;
-    }
-  }
+  Color get _levelColor => trustLevelColor(widget.data.trustLevel);
 
   String get _levelLabel {
     switch (widget.data.trustLevel) {
