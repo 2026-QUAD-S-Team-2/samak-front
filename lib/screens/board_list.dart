@@ -150,7 +150,8 @@ class _BoardListScreenState extends State<BoardListScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 12),
+
+          const SizedBox(height: 28),
 
           // ── 키워드 검색 ──
           Padding(
@@ -163,7 +164,7 @@ class _BoardListScreenState extends State<BoardListScreen> {
               onSubmitted: (v) => setState(() => _searchQuery = v.trim()),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 20),
 
           // ── 카테고리 필터 칩 ──
           SizedBox(
@@ -191,7 +192,7 @@ class _BoardListScreenState extends State<BoardListScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 20),
 
           // ── 목록 / 로딩 / 빈 상태 ──
           if (_isLoading)
@@ -276,13 +277,13 @@ class _CategoryChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.purple050 : Colors.transparent,
           borderRadius: BorderRadius.circular(50),
           border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.gray300,
-            width: 1.5,
+            color: isSelected ? AppColors.primary : AppColors.gray100,
+            width: isSelected? 2 : 0,
           ),
         ),
         child: Text(
@@ -364,6 +365,7 @@ class _PostItemCard extends StatelessWidget {
           border: Border(
             bottom: BorderSide(color: AppColors.gray200, width: 1),
           ),
+          borderRadius: BorderRadius.circular(5)
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -376,7 +378,7 @@ class _PostItemCard extends StatelessWidget {
                   child: Text(
                     item.title,
                     style: AppTypography.middleBold15,
-                    maxLines: 2,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -388,17 +390,17 @@ class _PostItemCard extends StatelessWidget {
                       '좋아요 ${item.likeCount}',
                       style: AppTypography.small12.copyWith(color: AppColors.gray500),
                     ),
+                    const SizedBox(height: 10,),
                     Text(
                       '댓글 ${item.commentCount}',
-                      style: AppTypography.smallBold12.copyWith(
-                        color: AppColors.gray900,
+                      style: AppTypography.large16.copyWith(
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ],
                 ),
               ],
             ),
-            const SizedBox(height: 6),
             // 카테고리 배지
             if (item.category != null)
               _CategoryBadge(category: item.category!),
@@ -416,23 +418,23 @@ class _CategoryBadge extends StatelessWidget {
 
   Color get _color {
     switch (category) {
-      case BoardCategory.experience:    return AppColors.primary;
-      case BoardCategory.fraudVote:     return AppColors.info;
-      case BoardCategory.analysisShare: return AppColors.secondary;
+      case BoardCategory.experience:    return AppColors.info;
+      case BoardCategory.fraudVote:     return AppColors.warning;
+      case BoardCategory.analysisShare: return AppColors.error;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color:        _color.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(50),
       ),
       child: Text(
         category.label,
-        style: AppTypography.small10.copyWith(
+        style: AppTypography.small12.copyWith(
           color:      _color,
           fontWeight: FontWeight.w600,
         ),

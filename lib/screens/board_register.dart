@@ -320,7 +320,7 @@ class _BoardRegisterScreenState extends State<BoardRegisterScreen> {
                 backgroundColor:         AppColors.primary,
                 disabledBackgroundColor: AppColors.gray300,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(100),
+                  borderRadius: BorderRadius.circular(5),
                 ),
                 elevation: 0,
               ),
