@@ -209,11 +209,6 @@ class _BoardRegisterScreenState extends State<BoardRegisterScreen> {
 
             Container(
               width:   double.infinity,
-              padding: const EdgeInsets.all(AppDimensions.cardPadding),
-              decoration: BoxDecoration(
-                color:        Colors.white,
-                borderRadius: BorderRadius.circular(12),
-              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -271,11 +266,6 @@ class _BoardRegisterScreenState extends State<BoardRegisterScreen> {
 
             Container(
               width:   double.infinity,
-              padding: const EdgeInsets.all(AppDimensions.cardPadding),
-              decoration: BoxDecoration(
-                color:        Colors.white,
-                borderRadius: BorderRadius.circular(12),
-              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
