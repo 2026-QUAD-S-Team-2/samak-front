@@ -12,6 +12,7 @@ import 'data/repositories/member_repository.dart';
 import 'data/models/member_model.dart';
 import 'screens/report_list.dart';
 import 'data/repositories/auth_repository.dart'; // [MODIFIED] 로그아웃을 위한 AuthRepository import 추가
+import 'screens/board_list.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -258,7 +259,7 @@ class _MainScreenState extends State<MainScreen> {
         key: ValueKey(_selectedIndex),
         onBackToHome: () => setState(() => _selectedIndex = 0),
       ),
-      _PlaceholderScreen(title: '게시판'),
+      const BoardListScreen(),
       const ProfileScreen(),
     ];
   }
