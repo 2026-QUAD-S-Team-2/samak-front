@@ -12,17 +12,21 @@ import '../data/repositories/analysis_repository.dart';
 import '../data/models/ai_analysis_result_model.dart';
 import '../data/models/analysis_item_list_model.dart';
 import '../core/network/api_exception.dart';
+import '../data/repositories/report_repository.dart';
+import '../data/models/report_model.dart';
 
 // 분석 결과 데이터 모델
 enum TrustLevel { good, bad, normal }
 
+// 수정 후
 class AnalysisResultData {
   final String companyName;
-  final int trustScore; // 0 ~ 100
+  final int trustScore;
   final TrustLevel trustLevel;
   final String companySummary;
   final String countryVerification;
   final String reportHistory;
+  final int reportHistoryCount; // [ADDED] 신고 이력 건수
 
   const AnalysisResultData({
     required this.companyName,
@@ -31,6 +35,7 @@ class AnalysisResultData {
     required this.companySummary,
     required this.countryVerification,
     required this.reportHistory,
+    required this.reportHistoryCount, // [ADDED]
   });
 }
 
@@ -86,39 +91,54 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
         // debugPrint('[AnalysisResult] status: ${detail.status}, pollCount: $pollCount');
 
         if (detail.status == AnalysisStatus.completed) {
-          // COMPLETED → AI 분석 결과 + 국가 경고 조회
+          // COMPLETED → AI 분석 결과 + 국가 경고 + 신고 이력 조회
           final results = await Future.wait([
             AnalysisRepository.instance.getAiAnalysis(id),
             AnalysisRepository.instance.getCountryWarning(id),
+            // [ADDED] 신고 이력 조회: 회사명 + 연락 수단 유형으로 검색
+            ReportRepository.instance.getReportHistory(
+              companyName: detail.companyName,
+              identifierType: detail.contactType,
+            ),
           ]);
 
           final aiResult = results[0] as AiAnalysisResultModel;
-          final warning  = results[1] as dynamic;
+          final warning = results[1] as dynamic;
+          // [ADDED] 신고 이력 항목 추출
+          final historyItems = results[2] as List<ReportHistoryItemModel>;
 
-          // debugPrint('[AnalysisResult] aiResult: riskScore=${aiResult.riskScore}, riskLevel=${aiResult.riskLevel}');
-          // debugPrint('[AnalysisResult] warning: ${warning.warningMessage}');
+          // [ADDED] 신고 이력 문자열 포맷: 항목별 한 줄, 없으면 안내 문구
+          final reportHistory = historyItems.isEmpty
+              ? '신고 이력이 없습니다.'
+              : historyItems.map((h) {
+            final date =
+                '${h.reportedAt.year}.${h.reportedAt.month.toString().padLeft(
+                2, '0')}';
+            return '• ${h.identifierType}: ${h.identifierValue}  ($date)';
+          }).join('\n');
 
-          // [수정] riskLevel 문자열 대신 riskScore 숫자 기준으로 trustLevel 결정
           final trustLevel = switch (100 - aiResult.riskScore) {
             >= 70 => TrustLevel.good,
             >= 40 => TrustLevel.normal,
-            _     => TrustLevel.bad,
+            _ => TrustLevel.bad,
           };
 
           setState(() {
             _resultData = AnalysisResultData(
-              companyName:         detail.companyName as String,
-              trustScore:          100 - aiResult.riskScore,
-              trustLevel:          trustLevel,
-              companySummary:      aiResult.message,
+              companyName: detail.companyName as String,
+              trustScore: 100 - aiResult.riskScore,
+              trustLevel: trustLevel,
+              companySummary: aiResult.message,
               countryVerification: warning.warningMessage as String,
-              reportHistory:       '신고 이력이 없습니다.',
+              reportHistory: reportHistory,
+              // [ADDED]
+              reportHistoryCount: historyItems.length, // [ADDED]
             );
             _isLoading = false;
           });
           return;
-
-        } else if (detail.status == AnalysisStatus.failed) {
+        }
+        else if (detail.status == AnalysisStatus.failed) {
           // [ADDED] 분석 실패 처리
           // debugPrint('[AnalysisResult] 분석 실패');
           setState(() {
@@ -233,6 +253,7 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
             _InfoSection(
               title: '신고 이력',
               content: _resultData!.reportHistory,
+              count: _resultData!.reportHistoryCount,
             ),
             SizedBox(height: AppDimensions.navigatorBarHeight),
           ],
@@ -451,13 +472,16 @@ class _TrustProgressBar extends StatelessWidget {
 }
 
 // 공통 정보 섹션 카드 (그래서 ~, 국가 기반 검증, 신고 이력)
+// 수정 후
 class _InfoSection extends StatelessWidget {
-  final String title;
-  final String content;
+  final String  title;
+  final String  content;
+  final int?    count; // [ADDED] 선택적 건수 뱃지 (신고 이력 섹션에서만 사용)
 
   const _InfoSection({
     required this.title,
     required this.content,
+    this.count, // [ADDED]
   });
 
   @override
@@ -465,16 +489,34 @@ class _InfoSection extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppDimensions.cardPadding),
-      // decoration: BoxDecoration(
-      //   color: Colors.white,
-      //   borderRadius: BorderRadius.circular(12),
-      // ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: AppTypography.largeBold16.copyWith(letterSpacing: -0.5),
+          // [MODIFIED] count가 있을 때 제목 옆에 건수 뱃지 표시
+          Row(
+            children: [
+              Text(
+                title,
+                style: AppTypography.largeBold16.copyWith(letterSpacing: -0.5),
+              ),
+              if (count != null) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color:        count! > 0 ? AppColors.error : AppColors.gray300,
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                  child: Text(
+                    '$count건',
+                    style: AppTypography.small12.copyWith(
+                      color:      Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
           const SizedBox(height: 12),
           Text(
