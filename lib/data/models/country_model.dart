@@ -1,12 +1,13 @@
 // CountryListResponse
 // 국가 코드 → 한국어 이름 매핑 테이블
+
+// [수정] API에 KR 없으므로 제거
 const Map<String, String> countryKoreanNames = {
-  'KR': '대한민국',
-  'US': '미국',
-  'VN': '베트남',
   'KH': '캄보디아',
-  'CA': '캐나다',
+  'VN': '베트남',
   'AU': '호주',
+  'CA': '캐나다',
+  'US': '미국',
 };
 
 class CountryModel {

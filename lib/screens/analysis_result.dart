@@ -34,6 +34,14 @@ class AnalysisResultData {
   });
 }
 
+Color trustLevelColor(TrustLevel level) {
+  switch (level) {
+    case TrustLevel.good:   return AppColors.success;
+    case TrustLevel.normal: return AppColors.warning;
+    case TrustLevel.bad:    return AppColors.error;
+  }
+}
+
 // 공고 분석 결과 화면
 class AnalysisResultScreen extends StatefulWidget {
   final VoidCallback? onBack;
@@ -55,7 +63,7 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
   String? _errorMessage;
   AnalysisResultData? _resultData;
   static const Duration _pollInterval = Duration(seconds: 3);
-  static const int _maxPollCount = 20; // 최대 60초 대기
+  static const int _maxPollCount = 30;
   String? _profileImageUrl;
 
   @override
@@ -90,10 +98,11 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
           // debugPrint('[AnalysisResult] aiResult: riskScore=${aiResult.riskScore}, riskLevel=${aiResult.riskLevel}');
           // debugPrint('[AnalysisResult] warning: ${warning.warningMessage}');
 
-          final trustLevel = switch (aiResult.riskLevel.toUpperCase()) {
-            'LOW'    => TrustLevel.good,
-            'MEDIUM' => TrustLevel.normal,
-            _        => TrustLevel.bad,
+          // [수정] riskLevel 문자열 대신 riskScore 숫자 기준으로 trustLevel 결정
+          final trustLevel = switch (100 - aiResult.riskScore) {
+            >= 70 => TrustLevel.good,
+            >= 40 => TrustLevel.normal,
+            _     => TrustLevel.bad,
           };
 
           setState(() {
@@ -159,9 +168,11 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+        backgroundColor: _resultData != null
+            ? trustLevelColor(_resultData!.trustLevel).withOpacity(0.05)
+            : AppColors.background,
       appBar: AppHeader(
-        title:          '공고 분석 결과',
+        title: '공고 분석 결과',
         showBackButton: true,
         onBack: widget.onBack ?? () => Navigator.of(context).maybePop(),
         profileImageUrl: _profileImageUrl, // [ADDED]
@@ -185,6 +196,28 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // [수정] 페이지 헤더 추가
+            Padding(
+              padding: const EdgeInsets.all(AppDimensions.cardPadding),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '공고 분석 결과',
+                    style: AppTypography.large20.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '사막AI가 분석한 공고의 신뢰도입니다.',
+                    style: AppTypography.small12.copyWith(
+                      color: AppColors.gray500,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            AppDimensions.verticalGap16,
             _TrustScoreCard(data: _resultData!),
             AppDimensions.verticalGap16,
             _InfoSection(
@@ -222,32 +255,22 @@ class _TrustScoreCard extends StatefulWidget {
 class _TrustScoreCardState extends State<_TrustScoreCard> {
   bool _showTooltip = false;
 
-  Color get _levelColor {
-    switch (widget.data.trustLevel) {
-      case TrustLevel.good:
-        return AppColors.success;
-      case TrustLevel.bad:
-        return AppColors.error;
-      case TrustLevel.normal:
-        return AppColors.warning;
-    }
-  }
+  Color get _levelColor => trustLevelColor(widget.data.trustLevel);
 
   String get _levelLabel {
     switch (widget.data.trustLevel) {
-      case TrustLevel.good:
-        return 'Good';
-      case TrustLevel.bad:
-        return 'Bad';
-      case TrustLevel.normal:
-        return 'Normal';
+      case TrustLevel.good:   return '안전'; // [수정] Good → 안전
+      case TrustLevel.bad:    return '위험'; // [수정] Bad → 위험
+      case TrustLevel.normal: return '주의'; // [수정] Normal → 주의
     }
   }
 
   String get _scoreIconPath {
-    if (widget.data.trustScore >= 70) return AppIcons.goodFace;
-    if (widget.data.trustScore >= 40) return AppIcons.normalFace;
-    return AppIcons.badFace;
+    switch (widget.data.trustLevel) {
+      case TrustLevel.good:   return AppIcons.goodFace;
+      case TrustLevel.normal: return AppIcons.normalFace;
+      case TrustLevel.bad:    return AppIcons.badFace;
+    }
   }
 
   @override
@@ -255,82 +278,84 @@ class _TrustScoreCardState extends State<_TrustScoreCard> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppDimensions.cardPadding),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── 헤더 행: AI 신뢰도 + 레벨 뱃지 + 물음표 아이콘 + [툴팁] ──
-          Row(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2.0),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _levelColor,
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                      child: Text(
+                        _levelLabel,
+                        style: AppTypography.middleBold15.copyWith(
+                          color: Colors.white,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(width: 6,),
+
+                  GestureDetector(
+                    onTap: () => setState(() => _showTooltip = !_showTooltip),
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 2.0),
+                      child: SvgPicture.asset(
+                        AppIcons.questionCircle,
+                        width: 20,
+                        height: 20,
+                        colorFilter: ColorFilter.mode(
+                          _showTooltip ? AppColors.gray900 : AppColors.gray500,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  if (_showTooltip) ...[
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.purple050,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: Text(
+                          '신뢰도는 AI가 분석한 결과를 기반으로 제공되므로 재차 확인을 권장드립니다.',
+                          style: AppTypography.small8.copyWith(
+                            color: AppColors.gray900,
+                            height: 1.0,
+                          ),
+                          softWrap: true,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+
+              const SizedBox(height: 8),
+
               Padding(
                 padding: const EdgeInsets.only(top: 2.0),
                 child: Text(
-                  'AI 신뢰도',
-                  style: AppTypography.largeBold16.copyWith(letterSpacing: -0.5),
+                  'AI 신뢰도 ${widget.data.trustScore}%',
+                  style: AppTypography.large20.copyWith(letterSpacing: -0.5, fontWeight: FontWeight.w500),
                 ),
               ),
               const SizedBox(width: 8),
-
-              Padding(
-                padding: const EdgeInsets.only(top: 2.0),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: _levelColor,
-                    borderRadius: BorderRadius.circular(100),
-                  ),
-                  child: Text(
-                    _levelLabel,
-                    style: AppTypography.small12.copyWith(
-                      color: Colors.black,
-                      letterSpacing: -0.3,
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(width: 6),
-
-              GestureDetector(
-                onTap: () => setState(() => _showTooltip = !_showTooltip),
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 2.0),
-                  child: SvgPicture.asset(
-                    AppIcons.questionCircle,
-                    width: 20,
-                    height: 20,
-                    colorFilter: ColorFilter.mode(
-                      _showTooltip ? AppColors.gray900 : AppColors.gray500,
-                      BlendMode.srcIn,
-                    ),
-                  ),
-                ),
-              ),
-
-              if (_showTooltip) ...[
-                const SizedBox(width: 4),
-                Flexible(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppColors.purple050,
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    child: Text(
-                      '신뢰도는 AI가 분석한 결과를 기반으로 제공되므로 재차 확인을 권장드립니다.',
-                      style: AppTypography.small8.copyWith(
-                        color: AppColors.gray900,
-                        height: 1.0,
-                      ),
-                      softWrap: true,
-                    ),
-                  ),
-                ),
-              ],
             ],
           ),
 
@@ -440,10 +465,10 @@ class _InfoSection extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppDimensions.cardPadding),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
+      // decoration: BoxDecoration(
+      //   color: Colors.white,
+      //   borderRadius: BorderRadius.circular(12),
+      // ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
