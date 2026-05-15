@@ -46,19 +46,27 @@ class _ReportListScreenState extends State<ReportListScreen> {
     super.dispose();
   }
 
+  // 수정 후
   Future<void> _loadItems() async {
+    final keyword = _keywordController.text.trim();
+    // [MODIFIED] keyword는 API required 파라미터이므로 없으면 API 호출 생략
+    if (keyword.isEmpty) {
+      setState(() {
+        _items     = [];
+        _isLoading = false;
+      });
+      return;
+    }
+
     setState(() => _isLoading = true);
     try {
-      final keyword = _keywordController.text.trim();
       final items = await ReportRepository.instance.getReports(
-        // 검색어가 없으면 searchType을 전송하지 않아 서버가 전체 조회하도록 처리
-        searchType: keyword.isNotEmpty ? _searchType : null,
+        searchType: _searchType,
         sortType:   _sortType,
-        keyword:    keyword.isNotEmpty ? keyword : null,
+        keyword:    keyword,
       );
       setState(() => _items = items);
     } on ApiException catch (e) {
-      // [MODIFIED] 에러 상태 변수 제거 → AppDialog 팝업으로 고지
       if (mounted) {
         AppDialog.show(
           context,
@@ -179,7 +187,10 @@ class _ReportListScreenState extends State<ReportListScreen> {
             Expanded(
               child: Center(
                 child: Text(
-                  '등록된 피해 사례가 없습니다.',
+                  // [MODIFIED] 키워드 없을 때와 검색 결과 없을 때 메시지 구분
+                  _keywordController.text.trim().isEmpty
+                      ? '검색어를 입력하고 조회해주세요.'
+                      : '검색 결과가 없습니다.',
                   style: AppTypography.middle14.copyWith(color: AppColors.gray500),
                 ),
               ),

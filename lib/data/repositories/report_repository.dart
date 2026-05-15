@@ -41,4 +41,25 @@ class ReportRepository {
     );
     return (data as Map<String, dynamic>)['id'] as int;
   }
+
+  // [ADDED] 신고 이력 조회 — 채용 공고 분석 결과 화면의 '신고 이력' 섹션에서 사용
+  // GET /api/v1/reports/history
+  Future<List<ReportHistoryItemModel>> getReportHistory({
+    String? companyName,
+    String? identifierType,
+    String? identifierValue,
+  }) async {
+    final params = <String, dynamic>{};
+    if (companyName     != null) params['companyName']     = companyName;
+    if (identifierType  != null) params['identifierType']  = identifierType;
+    if (identifierValue != null) params['identifierValue'] = identifierValue;
+
+    final data = await DioClient.instance.get(
+      '/api/v1/reports/history',
+      queryParameters: params,
+    );
+    return (data as List)
+        .map((e) => ReportHistoryItemModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
 }

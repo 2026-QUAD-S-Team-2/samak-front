@@ -28,8 +28,8 @@ class ReportRegisterScreen extends StatefulWidget {
 class _ReportRegisterScreenState extends State<ReportRegisterScreen> {
   final TextEditingController _companyController      = TextEditingController();
   final TextEditingController _contactValueController = TextEditingController();
-  final TextEditingController _reasonController       = TextEditingController();
-  final TextEditingController _evidenceController     = TextEditingController();
+  final TextEditingController _reasonController       = TextEditingController(); // [MODIFIED] evidence → reason 복원
+  // [MODIFIED] _evidenceController 제거 (API 명세에 없는 필드)
 
   String? _selectedContactType;
   bool    _isSubmitting = false;
@@ -66,8 +66,8 @@ class _ReportRegisterScreenState extends State<ReportRegisterScreen> {
   void dispose() {
     _companyController.dispose();
     _contactValueController.dispose();
-    _reasonController.dispose();
-    _evidenceController.dispose();
+    _reasonController.dispose(); // [MODIFIED] evidenceController → reasonController 복원
+    // [MODIFIED] _evidenceController.dispose() 제거
     super.dispose();
   }
 
@@ -96,11 +96,11 @@ class _ReportRegisterScreenState extends State<ReportRegisterScreen> {
 
   // 등록 실행 — 유효성 검사 → 이미지 업로드(선택) → 신고 등록
   Future<void> _submit() async {
+    // [MODIFIED] _evidenceController 조건 제거, _reasonController 조건 복원
     if (_companyController.text.trim().isEmpty ||
         _selectedContactType == null ||
         _contactValueController.text.trim().isEmpty ||
-        _reasonController.text.trim().isEmpty ||
-        _evidenceController.text.trim().isEmpty) {
+        _reasonController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('필수 항목을 모두 입력해 주세요.')),
       );
@@ -140,8 +140,8 @@ class _ReportRegisterScreenState extends State<ReportRegisterScreen> {
           companyName:  _companyController.text.trim(),
           contactType:  _contactTypeMap[_selectedContactType]!,
           contactValue: _contactValueController.text.trim(),
-          reason:       _reasonController.text.trim(),
-          evidence:     _evidenceController.text.trim(),
+          reason:       _reasonController.text.trim(), // [MODIFIED] evidence → reason 복원
+          // [MODIFIED] evidence 파라미터 제거
           imageNames:   imageNames,
         ),
       );
@@ -251,7 +251,7 @@ class _ReportRegisterScreenState extends State<ReportRegisterScreen> {
 
             AppDimensions.verticalGap16,
 
-            // ── 섹션 헤더: 신고 사유 ──
+            // ── 섹션 헤더: 신고 사유 ── [MODIFIED] 잘못 제거된 섹션 복원 (reason = API 명세 필드)
             _SectionHeader(title: '신고 사유'),
             AppDimensions.verticalGap16,
 
@@ -268,9 +268,9 @@ class _ReportRegisterScreenState extends State<ReportRegisterScreen> {
                   const _FieldLabel(label: '피해 내용', isRequired: true),
                   const SizedBox(height: 8),
                   _OutlinedTextField(
-                    controller: _reasonController,
-                    hintText:   '당시 피해 상황을 상세히 기재해주세요.',
-                    maxLines:   5,
+                    controller: _reasonController, // [MODIFIED] evidenceController → reasonController 복원
+                    hintText:   '피해 내용을 자유롭게 기재해주세요.',
+                    maxLines:   4,
                   ),
                 ],
               ),
@@ -320,17 +320,7 @@ class _ReportRegisterScreenState extends State<ReportRegisterScreen> {
                       },
                     ),
                   ),
-
-                  const SizedBox(height: 20),
-
-                  // 증거 텍스트 (필수)
-                  const _FieldLabel(label: '증거', isRequired: true),
-                  const SizedBox(height: 8),
-                  _OutlinedTextField(
-                    controller: _evidenceController,
-                    hintText:   '증거 내용을 자유롭게 기재해주세요.',
-                    maxLines:   4,
-                  ),
+                  // [MODIFIED] '증거' 텍스트 입력 필드 제거 (API 명세에 없는 evidence 필드)
                 ],
               ),
             ),

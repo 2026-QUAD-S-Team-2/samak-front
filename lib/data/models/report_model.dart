@@ -46,8 +46,8 @@ class ReportListItemModel {
 class ReportCreateRequest {
   final int?         companyId;      // 선택: 서버에서 companyName으로 대체 가능
   final String       companyName;
-  final String       reason;
-  final String       evidence;
+  final String       reason;         // [MODIFIED] evidence → reason 복원 (API 명세 기준)
+  // [MODIFIED] evidence 필드 제거 (API 명세에 없는 필드)
   final List<String> imageNames;
   final String       contactType;   // EMAIL | TELEGRAM | PHONE
   final String       contactValue;
@@ -55,8 +55,8 @@ class ReportCreateRequest {
   const ReportCreateRequest({
     this.companyId,
     required this.companyName,
-    required this.reason,
-    required this.evidence,
+    required this.reason,           // [MODIFIED] evidence → reason 복원
+    // [MODIFIED] evidence 파라미터 제거
     required this.imageNames,
     required this.contactType,
     required this.contactValue,
@@ -65,13 +65,37 @@ class ReportCreateRequest {
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{
       'companyName':  companyName,
-      'reason':       reason,
-      'evidence':     evidence,
+      'reason':       reason,       // [MODIFIED] evidence → reason 복원, API 명세 일치
+      // [MODIFIED] 'evidence' 제거 (API 명세에 없는 필드)
       'imageNames':   imageNames,
       'contactType':  contactType,
       'contactValue': contactValue,
     };
     if (companyId != null) map['companyId'] = companyId;
     return map;
+  }
+}
+
+// [ADDED] GET /api/v1/reports/history 응답 항목 모델
+class ReportHistoryItemModel {
+  final String   companyName;
+  final String   identifierType;   // EMAIL | TELEGRAM | PHONE
+  final String   identifierValue;
+  final DateTime reportedAt;
+
+  const ReportHistoryItemModel({
+    required this.companyName,
+    required this.identifierType,
+    required this.identifierValue,
+    required this.reportedAt,
+  });
+
+  factory ReportHistoryItemModel.fromJson(Map<String, dynamic> json) {
+    return ReportHistoryItemModel(
+      companyName:     json['companyName']     as String,
+      identifierType:  json['identifierType']  as String,
+      identifierValue: json['identifierValue'] as String,
+      reportedAt:      DateTime.parse(json['reportedAt'] as String),
+    );
   }
 }
