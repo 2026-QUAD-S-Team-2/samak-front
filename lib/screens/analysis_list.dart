@@ -347,11 +347,14 @@ class _AnalysisItemCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
-                  item.companyName,
-                  style: AppTypography.largeBold16.copyWith(letterSpacing: -0.5),
+                Expanded(
+                  child: Text(
+                    item.companyName,
+                    style: AppTypography.largeBold16.copyWith(letterSpacing: -0.5),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                const Spacer(),
+                // const Spacer(),
                 // 상태 뱃지
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -394,17 +397,23 @@ class _AnalysisItemCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: AppColors.gray200, width: 1),
               ),
+              // [MODIFIED] Spacer 제거 후 Expanded로 공간 균등 분배하여 overflow 방지
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // '검사 날짜' → '등록 날짜'
-                  _InfoColumn(label: '등록 날짜', value: examDate),
-                  const Spacer(),
-                  SizedBox(width: 1, height: 32),
-                  const Spacer(),
-                  // location → countryCode
-                  _InfoColumn(
-                    label: '국가 / 지역',
-                    value: '${item.countryName} / ${item.cityName}',
+                  Expanded(
+                    child: _InfoColumn(label: '등록 날짜', value: examDate),
+                  ),
+                  Container(width: 1, height: 32, color: AppColors.gray200),
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: _InfoColumn(
+                        label: '국가 / 지역',
+                        value: '${item.countryName}\n${item.cityName}',
+                        textAlign: TextAlign.right,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -421,22 +430,36 @@ class _AnalysisItemCard extends StatelessWidget {
 class _InfoColumn extends StatelessWidget {
   final String label;
   final String value;
+  final TextAlign textAlign;
 
-  const _InfoColumn({required this.label, required this.value});
+  const _InfoColumn({
+    required this.label,
+    required this.value,
+    this.textAlign = TextAlign.left,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: textAlign == TextAlign.right
+          ? CrossAxisAlignment.end
+          : CrossAxisAlignment.start,
       children: [
         Text(
           label,
           style: AppTypography.small12.copyWith(color: AppColors.gray500),
+          textAlign: textAlign,
         ),
         const SizedBox(height: 4),
         Text(
           value,
-          style: AppTypography.middle14.copyWith(letterSpacing: -0.3, color: AppColors.textSecondary),
+          style: AppTypography.middle14.copyWith(
+            letterSpacing: -0.3,
+            color: AppColors.textSecondary,
+          ),
+          overflow: TextOverflow.ellipsis,
+          maxLines: 2,
+          textAlign: textAlign,
         ),
       ],
     );
