@@ -555,7 +555,6 @@ class _LocationMapSectionState extends State<_LocationMapSection> {
 
   @override
   void dispose() {
-    _mapController?.dispose();
     super.dispose();
   }
 
