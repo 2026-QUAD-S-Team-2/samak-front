@@ -387,7 +387,7 @@ class _PostItemCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      '좋아요 ${item.likeCount}',
+                      '스크랩 ${item.scrapCount}',
                       style: AppTypography.small12.copyWith(color: AppColors.gray500),
                     ),
                     const SizedBox(height: 10,),

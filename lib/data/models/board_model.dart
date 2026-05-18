@@ -29,16 +29,18 @@ class BoardPostListItemModel {
   final int            id;
   final BoardCategory? category;
   final String         title;
-  final int            likeCount;
+  final int            scrapCount;
   final int            commentCount;
+  final bool           isScrapped;
   final DateTime       createdAt;
 
   const BoardPostListItemModel({
     required this.id,
     required this.category,
     required this.title,
-    required this.likeCount,
+    required this.scrapCount,
     required this.commentCount,
+    required this.isScrapped,
     required this.createdAt,
   });
 
@@ -47,8 +49,9 @@ class BoardPostListItemModel {
       id:           json['id'] as int,
       category:     BoardCategory.fromValue(json['category'] as String?),
       title:        json['title'] as String? ?? '',
-      likeCount:    json['likeCount'] as int? ?? 0,
+      scrapCount:   json['scrapCount'] as int? ?? 0,
       commentCount: json['commentCount'] as int? ?? 0,
+      isScrapped:   json['isScrapped'] as bool? ?? false,
       createdAt:    DateTime.tryParse(json['createdAt'] as String? ?? '') ?? DateTime.now(),
     );
   }
@@ -83,8 +86,9 @@ class BoardPostDetailModel {
   final String         title;
   final String         content;
   final String         authorNickname;
-  final int            likeCount;
+  final int            scrapCount;
   final int            commentCount;
+  final bool           isScrapped;
   final List<String>   imageUrls;
   final int?           analysisItemId;
   final DateTime       createdAt;
@@ -95,8 +99,9 @@ class BoardPostDetailModel {
     required this.title,
     required this.content,
     required this.authorNickname,
-    required this.likeCount,
+    required this.scrapCount,
     required this.commentCount,
+    required this.isScrapped,
     required this.imageUrls,
     required this.analysisItemId,
     required this.createdAt,
@@ -110,8 +115,9 @@ class BoardPostDetailModel {
       title:          json['title'] as String? ?? '',
       content:        json['content'] as String? ?? '',
       authorNickname: json['authorNickname'] as String? ?? '',
-      likeCount:      json['likeCount'] as int? ?? 0,
+      scrapCount:     json['scrapCount'] as int? ?? 0,
       commentCount:   json['commentCount'] as int? ?? 0,
+      isScrapped:     json['isScrapped'] as bool? ?? false,
       imageUrls:      rawUrls.map((e) => e as String).toList(),
       analysisItemId: json['analysisItemId'] as int?,
       createdAt:      DateTime.tryParse(json['createdAt'] as String? ?? '') ?? DateTime.now(),

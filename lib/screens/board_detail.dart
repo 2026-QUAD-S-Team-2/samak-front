@@ -33,6 +33,7 @@ class _BoardDetailScreenState extends State<BoardDetailScreen> {
   BoardFraudVoteModel?    _fraudVote;
   bool _isLoading   = true;
   bool _isScrapped  = false; // 스크랩 상태 (서버 응답 없으므로 낙관적 토글)
+  int  _scrapCount  = 0;
   bool _hasVoted    = false; // 투표 완료 여부
   String? _profileImageUrl;
 
@@ -76,6 +77,8 @@ class _BoardDetailScreenState extends State<BoardDetailScreen> {
           _post      = post;
           _comments  = comments;
           _fraudVote = fraudVote;
+          _scrapCount = post.scrapCount;
+          _isScrapped = post.isScrapped;
         });
       }
     } on ApiException catch (e) {
@@ -92,15 +95,16 @@ class _BoardDetailScreenState extends State<BoardDetailScreen> {
     final prev = _isScrapped;
     setState(() => _isScrapped = !_isScrapped);
     try {
-      if (!prev) {
-        await BoardRepository.instance.addScrap(widget.postId);
-      } else {
-        await BoardRepository.instance.removeScrap(widget.postId);
-      }
+      final updatedCount = !prev
+          ? await BoardRepository.instance.addScrap(widget.postId)
+          : await BoardRepository.instance.removeScrap(widget.postId);
+      if (mounted) setState(() => _scrapCount = updatedCount);
     } on ApiException catch (e) {
-      // 실패 시 롤백
       if (mounted) {
-        setState(() => _isScrapped = prev);
+        setState(() {
+          _isScrapped = prev;
+          _scrapCount = _post!.scrapCount;
+        });
         AppDialog.show(context, title: '스크랩 실패', message: e.message);
       }
     }
@@ -208,6 +212,7 @@ class _BoardDetailScreenState extends State<BoardDetailScreen> {
                 _PostBodyCard(
                   post:        _post!,
                   isScrapped:  _isScrapped,
+                  scrapCount:  _scrapCount, // [ADDED]
                   onScrapTap:  _toggleScrap,
                 ),
 
@@ -262,11 +267,13 @@ class _BoardDetailScreenState extends State<BoardDetailScreen> {
 class _PostBodyCard extends StatelessWidget {
   final BoardPostDetailModel post;
   final bool         isScrapped;
+  final int          scrapCount; // [ADDED]
   final VoidCallback onScrapTap;
 
   const _PostBodyCard({
     required this.post,
     required this.isScrapped,
+    required this.scrapCount, // [ADDED]
     required this.onScrapTap,
   });
 
@@ -288,10 +295,21 @@ class _PostBodyCard extends StatelessWidget {
               const Spacer(),
               GestureDetector(
                 onTap: onScrapTap,
-                child: Icon(
-                  isScrapped ? Icons.bookmark : Icons.bookmark_border,
-                  color: isScrapped ? AppColors.primary : AppColors.gray500,
-                  size: 24,
+                child: Row(
+                  children: [
+                    Icon(
+                      isScrapped ? Icons.bookmark : Icons.bookmark_border,
+                      color: isScrapped ? AppColors.primary : AppColors.gray500,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '$scrapCount',
+                      style: AppTypography.small12.copyWith(
+                        color: isScrapped ? AppColors.primary : AppColors.gray500,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -306,6 +324,8 @@ class _PostBodyCard extends StatelessWidget {
           const SizedBox(height: 6),
 
           // 작성자 + 날짜
+          // [MODIFIED] thumb_up + likeCount 제거, commentCount만 유지
+          // [MODIFIED] thumb_up + likeCount 제거, commentCount만 유지
           Row(
             children: [
               Text(
@@ -318,13 +338,6 @@ class _PostBodyCard extends StatelessWidget {
                 style: AppTypography.small12.copyWith(color: AppColors.gray500),
               ),
               const Spacer(),
-              Icon(Icons.thumb_up_outlined, size: 14, color: AppColors.gray500),
-              const SizedBox(width: 4),
-              Text(
-                '${post.likeCount}',
-                style: AppTypography.small12.copyWith(color: AppColors.gray500),
-              ),
-              const SizedBox(width: 10),
               Icon(Icons.chat_bubble_outline, size: 14, color: AppColors.gray500),
               const SizedBox(width: 4),
               Text(

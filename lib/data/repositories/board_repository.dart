@@ -40,14 +40,24 @@ class BoardRepository {
   }
 
   /// 스크랩 추가 (별칭 추가로 board_detail.dart 호환)
-  Future<void> addScrap(int postId) => scrapPost(postId); // ✅ 별칭
+  Future<int> addScrap(int postId) async {
+    final data = await DioClient.instance.post(
+      '/api/v1/board/posts/$postId/scrap',
+    );
+    return (data as Map<String, dynamic>)['scrapCount'] as int;
+  }
 
   Future<void> scrapPost(int postId) async {
     await DioClient.instance.post('/api/v1/board/posts/$postId/scrap');
   }
 
   /// 스크랩 취소 (별칭 추가로 board_detail.dart 호환)
-  Future<void> removeScrap(int postId) => unscrapPost(postId); // ✅ 별칭
+  Future<int> removeScrap(int postId) async {
+    final data = await DioClient.instance.delete(
+      '/api/v1/board/posts/$postId/scrap',
+    );
+    return (data as Map<String, dynamic>)['scrapCount'] as int;
+  }
 
   Future<void> unscrapPost(int postId) async {
     await DioClient.instance.delete('/api/v1/board/posts/$postId/scrap');
