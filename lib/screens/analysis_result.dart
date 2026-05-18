@@ -568,38 +568,46 @@ class _LocationMapSectionState extends State<_LocationMapSection> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '회사 위치',
+            '위치',
             style: AppTypography.largeBold16.copyWith(letterSpacing: -0.5),
           ),
-          const SizedBox(height: 4),
-          Text(
-            widget.location.rawText,
-            style: AppTypography.small12.copyWith(
-              color: AppColors.gray500,
-              letterSpacing: -0.3,
-            ),
-          ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 24),
           ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: SizedBox(
-              height: 200,
-              child: GoogleMap(
-                initialCameraPosition: CameraPosition(
-                  target: LatLng(widget.location.lat, widget.location.lng),
-                  zoom: widget.location.zoom,
-                ),
-                onMapCreated: (controller) => _mapController = controller,
-                markers: {
-                  Marker(
-                    markerId: const MarkerId('company'),
-                    position: LatLng(widget.location.lat, widget.location.lng),
-                    infoWindow: InfoWindow(title: widget.location.rawText),
+            borderRadius: BorderRadius.circular(15),
+            child: Column(
+              children: [
+                SizedBox(
+                  height: 200,
+                  child: GoogleMap(
+                    initialCameraPosition: CameraPosition(
+                      target: LatLng(widget.location.lat, widget.location.lng),
+                      zoom: widget.location.zoom,
+                    ),
+                    onMapCreated: (controller) => _mapController = controller,
+                    markers: {
+                      Marker(
+                        markerId: const MarkerId('company'),
+                        position: LatLng(widget.location.lat, widget.location.lng),
+                        infoWindow: InfoWindow(title: widget.location.rawText),
+                      ),
+                    },
+                    zoomControlsEnabled: false,
+                    myLocationButtonEnabled: false,
                   ),
-                },
-                zoomControlsEnabled: false,
-                myLocationButtonEnabled: false,
-              ),
+                ),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(15),
+                  color: Colors.white,
+                  child: Text(
+                    widget.location.rawText,
+                    style: AppTypography.middle14.copyWith(
+                      color: AppColors.gray500,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
