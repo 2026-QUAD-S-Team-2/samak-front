@@ -79,6 +79,7 @@ class _BoardDetailScreenState extends State<BoardDetailScreen> {
           _fraudVote = fraudVote;
           _scrapCount = post.scrapCount;
           _isScrapped = post.isScrapped;
+          _hasVoted = fraudVote?.isVoted ?? false;
         });
       }
     } on ApiException catch (e) {
@@ -118,7 +119,12 @@ class _BoardDetailScreenState extends State<BoardDetailScreen> {
       setState(() => _hasVoted = true);
       // 투표 후 결과 갱신
       final updated = await BoardRepository.instance.getFraudVote(widget.postId);
-      if (mounted) setState(() => _fraudVote = updated);
+      if (mounted) {
+        setState(() {
+        _fraudVote = updated;
+        _hasVoted  = updated.isVoted;
+        });
+      }
     } on ApiException catch (e) {
       if (mounted) {
         AppDialog.show(context, title: '투표 실패', message: e.message);
