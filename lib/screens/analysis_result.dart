@@ -251,7 +251,6 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
             AppDimensions.verticalGap16,
             if (_resultData!.location != null)
                 _LocationMapSection(location: _resultData!.location!),
-            if (_resultData!.location == null)
             _InfoSection(
               title: '국가 기반 검증',
               content: _resultData!.countryVerification,
