@@ -112,6 +112,7 @@ class _BoardRegisterScreenState extends State<BoardRegisterScreen> {
       }
     }
 
+    if (!mounted) return;
     setState(() => _isSubmitting = true);
 
     // 이미지 업로드 (선택)
