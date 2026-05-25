@@ -124,7 +124,7 @@ class _BannerCardState extends State<_BannerCard> {
     return Column(
       children: [
         SizedBox(
-          height: 120,
+          height: 130,
           child: PageView.builder(
             controller: _pageController,
             itemCount: totalCount,
@@ -133,51 +133,54 @@ class _BannerCardState extends State<_BannerCard> {
 
               // 서버 데이터가 없어 폴백(하드코딩) 배너를 띄워야 하는 경우
               if (showFallback) {
-                return Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 20, 0, 20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '취업 사기가 걱정되시나요?',
-                                style: AppTypography.large16.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: -0.5,
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 2),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 20, 0, 20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '취업 사기가 걱정되시나요?',
+                                  style: AppTypography.large16.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: -0.5,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '사막 AI 분석이 공고를 검증해 드려요',
-                                style: AppTypography.middle13.copyWith(
-                                  color: AppColors.purple100,
-                                  letterSpacing: -0.5,
+                                const SizedBox(height: 4),
+                                Text(
+                                  '사막 AI 분석이 공고를 검증해 드려요',
+                                  style: AppTypography.middle13.copyWith(
+                                    color: AppColors.purple100,
+                                    letterSpacing: -0.5,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                      ClipRRect(
-                        borderRadius: const BorderRadius.horizontal(
-                          right: Radius.circular(12),
+                        ClipRRect(
+                          borderRadius: const BorderRadius.horizontal(
+                            right: Radius.circular(12),
+                          ),
+                          child: Image(
+                            image: AssetImage(AppIcons.banner),
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit.cover,
+                          ),
                         ),
-                        child: Image(
-                          image: AssetImage(AppIcons.banner),
-                          width: 100,
-                          height: 100,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 );
               }
@@ -185,42 +188,45 @@ class _BannerCardState extends State<_BannerCard> {
               // 서버 데이터를 정상적으로 받아온 경우
               final news = widget.newsList[index];
 
-              return GestureDetector(
-                onTap: news.link != null ? () => _openLink(news.link!) : null,
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    image: DecorationImage(
-                      image: NetworkImage(news.backgroundImageUrl),
-                      fit: BoxFit.fitHeight,
-                      alignment: Alignment.centerRight,
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+                child: GestureDetector(
+                  onTap: news.link != null ? () => _openLink(news.link!) : null,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      image: DecorationImage(
+                        image: NetworkImage(news.backgroundImageUrl),
+                        fit: BoxFit.fitHeight,
+                        alignment: Alignment.centerRight,
+                      ),
                     ),
-                  ),
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(
-                        news.title,
-                        style: AppTypography.largeBold16.copyWith(
-                          color: index == 0 ? AppColors.purple100 : AppColors.gray900,
-                          letterSpacing: -0.5,
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text(
+                          news.title,
+                          style: AppTypography.largeBold16.copyWith(
+                            color: index == 0 ? AppColors.purple100 : AppColors.gray900,
+                            letterSpacing: -0.5,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        news.summary,
-                        style: AppTypography.small12.copyWith(
-                          color: index == 0 ? AppColors.gray200 : AppColors.textSecondary,
-                          letterSpacing: -0.3,
+                        const SizedBox(height: 4),
+                        Text(
+                          news.summary,
+                          style: AppTypography.small12.copyWith(
+                            color: index == 0 ? AppColors.gray200 : AppColors.textSecondary,
+                            letterSpacing: -0.3,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               );
