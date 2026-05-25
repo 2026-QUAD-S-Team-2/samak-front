@@ -7,6 +7,7 @@ import '../core/design_system/widgets/app_header.dart';
 import '../core/design_system/app_icons.dart';
 import '../data/repositories/member_repository.dart';
 import '../screens/profile_screen.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 // API 연동
 import '../data/repositories/analysis_repository.dart';
 import '../data/models/ai_analysis_result_model.dart';
@@ -26,7 +27,8 @@ class AnalysisResultData {
   final String companySummary;
   final String countryVerification;
   final String reportHistory;
-  final int reportHistoryCount; // [ADDED] 신고 이력 건수
+  final int reportHistoryCount;
+  final AiAnalysisLocationModel? location;
 
   const AnalysisResultData({
     required this.companyName,
@@ -35,7 +37,8 @@ class AnalysisResultData {
     required this.companySummary,
     required this.countryVerification,
     required this.reportHistory,
-    required this.reportHistoryCount, // [ADDED]
+    required this.reportHistoryCount,
+    this.location,
   });
 }
 
@@ -133,6 +136,7 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
               reportHistory: reportHistory,
               // [ADDED]
               reportHistoryCount: historyItems.length, // [ADDED]
+              location: aiResult.location,
             );
             _isLoading = false;
           });
@@ -245,6 +249,8 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
               content: _resultData!.companySummary,
             ),
             AppDimensions.verticalGap16,
+            if (_resultData!.location != null)
+                _LocationMapSection(location: _resultData!.location!),
             _InfoSection(
               title: '국가 기반 검증',
               content: _resultData!.countryVerification,
@@ -525,6 +531,81 @@ class _InfoSection extends StatelessWidget {
               color: AppColors.textSecondary,
               height: 1.6,
               letterSpacing: -0.3,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// [ADDED] 회사 위치 지도 섹션
+class _LocationMapSection extends StatefulWidget {
+  final AiAnalysisLocationModel location;
+
+  const _LocationMapSection({required this.location});
+
+  @override
+  State<_LocationMapSection> createState() => _LocationMapSectionState();
+}
+
+class _LocationMapSectionState extends State<_LocationMapSection> {
+  GoogleMapController? _mapController;
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppDimensions.cardPadding),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '위치',
+            style: AppTypography.largeBold16.copyWith(letterSpacing: -0.5),
+          ),
+          const SizedBox(height: 24),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(15),
+            child: Column(
+              children: [
+                SizedBox(
+                  height: 200,
+                  child: GoogleMap(
+                    initialCameraPosition: CameraPosition(
+                      target: LatLng(widget.location.lat, widget.location.lng),
+                      zoom: widget.location.zoom,
+                    ),
+                    onMapCreated: (controller) => _mapController = controller,
+                    markers: {
+                      Marker(
+                        markerId: const MarkerId('company'),
+                        position: LatLng(widget.location.lat, widget.location.lng),
+                        infoWindow: InfoWindow(title: widget.location.rawText),
+                      ),
+                    },
+                    zoomControlsEnabled: false,
+                    myLocationButtonEnabled: false,
+                  ),
+                ),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(15),
+                  color: Colors.white,
+                  child: Text(
+                    widget.location.rawText,
+                    style: AppTypography.middle14.copyWith(
+                      color: AppColors.gray500,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
