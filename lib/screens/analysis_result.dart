@@ -490,6 +490,31 @@ class _InfoSection extends StatelessWidget {
     this.count, // [ADDED]
   });
 
+  // [추가] ** 감싸인 텍스트를 파싱하여 TextSpan 리스트로 변환
+  List<TextSpan> _buildStyledSpans(
+      String text, {
+        required TextStyle normalStyle,
+        required TextStyle boldStyle,
+      }) {
+    final spans = <TextSpan>[];
+    final regex = RegExp(r'\*\*(.+?)\*\*');
+    int lastEnd = 0;
+
+    for (final match in regex.allMatches(text)) {
+      if (match.start > lastEnd) {
+        spans.add(TextSpan(text: text.substring(lastEnd, match.start), style: normalStyle));
+      }
+      spans.add(TextSpan(text: match.group(1), style: boldStyle));
+      lastEnd = match.end;
+    }
+
+    if (lastEnd < text.length) {
+      spans.add(TextSpan(text: text.substring(lastEnd), style: normalStyle));
+    }
+
+    return spans;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -525,12 +550,23 @@ class _InfoSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Text(
-            content,
-            style: AppTypography.middle14.copyWith(
-              color: AppColors.textSecondary,
-              height: 1.6,
-              letterSpacing: -0.3,
+          // [수정] ** 패턴 파싱하여 중요 텍스트 강조 표시
+          RichText(
+            text: TextSpan(
+              children: _buildStyledSpans(
+                content,
+                normalStyle: AppTypography.middle14.copyWith(
+                  color: AppColors.textSecondary,
+                  height: 1.6,
+                  letterSpacing: -0.3,
+                ),
+                boldStyle: AppTypography.middle14.copyWith(
+                  color: AppColors.gray900,
+                  fontWeight: FontWeight.w800,
+                  height: 1.6,
+                  letterSpacing: -0.3,
+                ),
+              ),
             ),
           ),
         ],
