@@ -74,7 +74,7 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
         onBack: () => Navigator.of(context).maybePop(),
         profileImageUrl: _profileImageUrl,
         onProfileTap: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const ProfileScreen()),
+          MaterialPageRoute(builder: (_) => const ProfileRouteScreen()),
         ),
       ),
       // [MODIFIED] 더미 데이터 → _isLoading / _detail 상태 기반 분기 렌더링

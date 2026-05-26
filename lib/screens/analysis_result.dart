@@ -230,7 +230,7 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
         onBack: widget.onBack ?? () => Navigator.of(context).maybePop(),
         profileImageUrl: _profileImageUrl,
         onProfileTap: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const ProfileScreen()),
+          MaterialPageRoute(builder: (_) => const ProfileRouteScreen()),
         ),
       ),
       body: _isLoading

@@ -10,6 +10,7 @@ import '../data/repositories/member_repository.dart';
 import '../data/models/member_model.dart';
 import '../core/network/api_exception.dart';
 import 'login_screen.dart';
+import '../core/design_system/widgets/app_header.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -173,6 +174,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+// [ADDED] Navigator.push로 진입할 때 AppHeader(뒤로가기)를 포함하는 래퍼 화면
+class ProfileRouteScreen extends StatelessWidget {
+  const ProfileRouteScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppHeader(
+        title: '프로필',
+        showBackButton: true,
+        onBack: () => Navigator.of(context).maybePop(),
+      ),
+      body: const ProfileScreen(),
     );
   }
 }
