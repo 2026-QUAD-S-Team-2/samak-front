@@ -12,6 +12,7 @@ import '../data/repositories/report_repository.dart';
 import '../data/models/report_model.dart';
 import '../core/network/api_exception.dart';
 import 'report_register.dart';
+import 'report_detail.dart';
 
 class ReportListScreen extends StatefulWidget {
   const ReportListScreen({super.key});
@@ -175,6 +176,8 @@ class _ReportListScreenState extends State<ReportListScreen> {
             ),
           ),
 
+          const SizedBox(height: AppDimensions.cardPadding,),
+
           // ── 목록 / 로딩 / 빈 상태 ──
           // [MODIFIED] _errorMessage 분기 제거 (에러는 AppDialog로 처리)
           if (_isLoading)
@@ -323,39 +326,48 @@ class _ReportItemCard extends StatelessWidget {
     final dateStr =
         '${item.latestReportedAt.year}.${item.latestReportedAt.month.toString().padLeft(2, '0')}';
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color:        Colors.white,
-        borderRadius: BorderRadius.circular(12),
+    return GestureDetector(
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(
+            builder: (_) => ReportDetailScreen(
+              companyName: item.companyName,
+            ),
+        ),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.companyName,
-                  style: AppTypography.largeBold16.copyWith(letterSpacing: -0.5),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '최근 신고 $dateStr',
-                  style: AppTypography.small12.copyWith(color: AppColors.gray500),
-                ),
-              ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color:        Colors.white,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.companyName,
+                    style: AppTypography.largeBold16.copyWith(letterSpacing: -0.5),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '최근 신고 $dateStr',
+                    style: AppTypography.small12.copyWith(color: AppColors.gray500),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Text(
-            '신고 ${item.reportCount}건',
-            style: AppTypography.largeBold16.copyWith(
-              color:         AppColors.error,
-              letterSpacing: -0.5,
+            Text(
+              '신고 ${item.reportCount}건',
+              style: AppTypography.largeBold16.copyWith(
+                color:         AppColors.error,
+                letterSpacing: -0.5,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
