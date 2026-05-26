@@ -361,11 +361,11 @@ class _PostItemCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color:  Colors.white,
-          border: Border(
-            bottom: BorderSide(color: AppColors.gray200, width: 1),
-          ),
-          borderRadius: BorderRadius.circular(5)
+            color:  Colors.white,
+            border: Border(
+              bottom: BorderSide(color: AppColors.gray200, width: 1),
+            ),
+            borderRadius: BorderRadius.circular(5)
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -418,9 +418,9 @@ class _CategoryBadge extends StatelessWidget {
 
   Color get _color {
     switch (category) {
-      case BoardCategory.experience:    return AppColors.info;
-      case BoardCategory.fraudVote:     return AppColors.warning;
-      case BoardCategory.analysisShare: return AppColors.error;
+      case BoardCategory.experience:    return AppColors.secondary;
+      case BoardCategory.fraudVote:     return AppColors.info;
+      case BoardCategory.analysisShare: return AppColors.highlight;
     }
   }
 

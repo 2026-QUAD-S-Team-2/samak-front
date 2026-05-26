@@ -9,7 +9,7 @@
 enum BoardCategory {
   experience('EXPERIENCE', '경험담'),
   fraudVote('FRAUD_VOTE', '사기 의심 투표'),
-  analysisShare('ANALYSIS_SHARE', '분석 결과 공유');
+  analysisShare('AI_ANALYSIS', '분석 결과 공유');
 
   final String value;
   final String label;
@@ -130,11 +130,13 @@ class BoardFraudVoteModel {
   final int postId;
   final int fraudCount;
   final int notFraudCount;
+  final bool isVoted;
 
   const BoardFraudVoteModel({
     required this.postId,
     required this.fraudCount,
     required this.notFraudCount,
+    required this.isVoted,
   });
 
   factory BoardFraudVoteModel.fromJson(Map<String, dynamic> json) {
@@ -142,6 +144,7 @@ class BoardFraudVoteModel {
       postId:        json['postId'] as int,
       fraudCount:    json['fraudCount'] as int? ?? 0,
       notFraudCount: json['notFraudCount'] as int? ?? 0,
+      isVoted:       json['isVoted'] as bool? ?? false,
     );
   }
 

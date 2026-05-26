@@ -27,46 +27,12 @@ class _HomeScreenState extends State<HomeScreen> {
   MemberModel? _member;
   TodayQuizModel? _quiz;
   List<NewsModel> _newsList = [];
-  // String? _homeError;
 
   @override
   void initState() {
     super.initState();
     _loadData();
   }
-
-  // 멤버 정보 + 퀴즈 병렬 로드
-  /* Future<void> _loadData() async {
-    try {
-      final results = await Future.wait([
-        MemberRepository.instance.getMe(),
-        QuizRepository.instance.getTodayQuiz(),
-        NewsRepository.instance.getBannerNews(),
-      ]);
-      // debugPrint('member raw: ${results[0]}');
-      setState(() {
-        _member = results[0] as MemberModel;
-        _quiz   = results[1] as TodayQuizModel;
-        _newsList = results[2] as List<NewsModel>;
-      });
-      // debugPrint('newsList: ${_newsList.map((e) => e.title).toList()}');
-    } on ApiException catch (e) {
-      // setState(() => _homeError = e.message);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message)),
-        );
-      }
-    }
-    /*
-    catch (e) {
-      // ApiException 외 예외도 확인
-      setState(() => _homeError = e.toString());
-    }
-    */
-  }
-
-   */
 
   Future<void> _loadData() async {
     // 1. 사용자 정보 로드 (필수)
@@ -111,7 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: _BannerCard(newsList: _newsList,),
             ),
             AppDimensions.verticalGap24,
-            _AnnouncementSection(),
+            _FraudGuideSection(),
             AppDimensions.verticalGap24,
             _QuizSection(quiz: _quiz),
             AppDimensions.verticalGap24,
@@ -158,7 +124,7 @@ class _BannerCardState extends State<_BannerCard> {
     return Column(
       children: [
         SizedBox(
-          height: 120,
+          height: 130,
           child: PageView.builder(
             controller: _pageController,
             itemCount: totalCount,
@@ -167,51 +133,54 @@ class _BannerCardState extends State<_BannerCard> {
 
               // 서버 데이터가 없어 폴백(하드코딩) 배너를 띄워야 하는 경우
               if (showFallback) {
-                return Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 20, 0, 20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '취업 사기가 걱정되시나요?',
-                                style: AppTypography.large16.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: -0.5,
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 2),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 20, 0, 20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '취업 사기가 걱정되시나요?',
+                                  style: AppTypography.large16.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: -0.5,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '사막 AI 분석이 공고를 검증해 드려요',
-                                style: AppTypography.middle13.copyWith(
-                                  color: AppColors.purple100,
-                                  letterSpacing: -0.5,
+                                const SizedBox(height: 4),
+                                Text(
+                                  '사막 AI 분석이 공고를 검증해 드려요',
+                                  style: AppTypography.middle13.copyWith(
+                                    color: AppColors.purple100,
+                                    letterSpacing: -0.5,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                      ClipRRect(
-                        borderRadius: const BorderRadius.horizontal(
-                          right: Radius.circular(12),
+                        ClipRRect(
+                          borderRadius: const BorderRadius.horizontal(
+                            right: Radius.circular(12),
+                          ),
+                          child: Image(
+                            image: AssetImage(AppIcons.banner),
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit.cover,
+                          ),
                         ),
-                        child: Image(
-                          image: AssetImage(AppIcons.banner),
-                          width: 100,
-                          height: 100,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 );
               }
@@ -219,42 +188,45 @@ class _BannerCardState extends State<_BannerCard> {
               // 서버 데이터를 정상적으로 받아온 경우
               final news = widget.newsList[index];
 
-              return GestureDetector(
-                onTap: news.link != null ? () => _openLink(news.link!) : null,
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    image: DecorationImage(
-                      image: NetworkImage(news.backgroundImageUrl),
-                      fit: BoxFit.fitHeight,
-                      alignment: Alignment.centerRight,
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+                child: GestureDetector(
+                  onTap: news.link != null ? () => _openLink(news.link!) : null,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      image: DecorationImage(
+                        image: NetworkImage(news.backgroundImageUrl),
+                        fit: BoxFit.fitHeight,
+                        alignment: Alignment.centerRight,
+                      ),
                     ),
-                  ),
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(
-                        news.title,
-                        style: AppTypography.largeBold16.copyWith(
-                          color: index == 0 ? AppColors.purple100 : AppColors.gray900,
-                          letterSpacing: -0.5,
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text(
+                          news.title,
+                          style: AppTypography.largeBold16.copyWith(
+                            color: index == 0 ? AppColors.purple100 : AppColors.gray900,
+                            letterSpacing: -0.5,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        news.summary,
-                        style: AppTypography.small12.copyWith(
-                          color: index == 0 ? AppColors.gray200 : AppColors.textSecondary,
-                          letterSpacing: -0.3,
+                        const SizedBox(height: 4),
+                        Text(
+                          news.summary,
+                          style: AppTypography.small12.copyWith(
+                            color: index == 0 ? AppColors.gray200 : AppColors.textSecondary,
+                            letterSpacing: -0.3,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               );
@@ -286,50 +258,46 @@ class _BannerCardState extends State<_BannerCard> {
   }
 }
 
-class _AnnouncementSection extends StatelessWidget {
+// [ADDED] 취업 사기 예방 가이드 캐러셀 섹션
+class _FraudGuideSection extends StatefulWidget {
+  @override
+  State<_FraudGuideSection> createState() => _FraudGuideSectionState();
+}
+
+class _FraudGuideSectionState extends State<_FraudGuideSection> {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+
+  // [ADDED] 카드뉴스 이미지 경로 목록
+  static const List<String> _images = [
+    'assets/images/fraud_guide_1.png',
+    'assets/images/fraud_guide_2.png',
+    'assets/images/fraud_guide_3.png',
+    'assets/images/fraud_guide_4.png',
+    'assets/images/fraud_guide_5.png',
+    'assets/images/fraud_guide_6.png',
+  ];
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── 1. 섹션 헤더 (Flexible/Expanded 적용으로 오버플로우 방지) ──
+        // [ADDED] 섹션 헤더
         Padding(
           padding: AppDimensions.screenEdgePadding,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // 첫 번째 줄: 타이틀 + 숫자 배지
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '공고 확인',
-                    style: AppTypography.largeBold16.copyWith(
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.purple100,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      '2',
-                      style: AppTypography.smallBold12.copyWith(
-                        color: AppColors.purple500,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6), // 타이틀과 설명 사이 간격
-              // 두 번째 줄: 설명 텍스트
               Text(
-                '김땡땡 님이 관심 있는 분야의 공고가 올라왔어요',
-                style: AppTypography.small12.copyWith(
-                  color: AppColors.textSecondary,
+                '취업 사기 예방 가이드',
+                style: AppTypography.largeBold16.copyWith(
                   letterSpacing: -0.5,
                 ),
               ),
@@ -339,185 +307,49 @@ class _AnnouncementSection extends StatelessWidget {
 
         const SizedBox(height: 12),
 
-        // ── 2. 아이템 박스 ──
-        Container(
-          margin: AppDimensions.screenEdgePadding,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.08),
-                offset: const Offset(0, 4),
-                blurRadius: 12,
-              ),
-            ],
+        // [ADDED] 캐러셀 이미지
+        SizedBox(
+          height: 270,
+          child: PageView.builder(
+            controller: _pageController,
+            itemCount: _images.length,
+            onPageChanged: (index) => setState(() => _currentPage = index),
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: AppDimensions.screenEdgePadding,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.asset(
+                    _images[index],
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                  ),
+                ),
+              );
+            },
           ),
-          child: Column(
-            children: [
-              _AnnouncementCard(
-                companyName: '\'OO회사\' 공고',
-                dateRange: '2.01 - 2.24',
-                memberCount: 3,
-                hasMoreMembers: true,
-                isActive: true,
+        ),
+
+        const SizedBox(height: 10),
+
+        // [ADDED] 페이지 인디케이터 도트
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(_images.length, (index) {
+            final bool isActive = index == _currentPage;
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              margin: const EdgeInsets.symmetric(horizontal: 3),
+              width: isActive ? 16 : 6,
+              height: 6,
+              decoration: BoxDecoration(
+                color: isActive ? AppColors.primary : AppColors.gray300,
+                borderRadius: BorderRadius.circular(100),
               ),
-              AppDimensions.verticalGap12,
-              _AnnouncementCard(
-                companyName: '\'OOO회사\' 공고',
-                dateRange: '2.08 - 2.26',
-                memberCount: 3,
-                hasMoreMembers: false,
-                isActive: false,
-              ),
-            ],
-          ),
+            );
+          }),
         ),
       ],
-    );
-  }
-}
-
-class _AnnouncementCard extends StatelessWidget {
-  final String companyName;
-  final String dateRange;
-  final int memberCount;
-  final bool hasMoreMembers;
-  final bool isActive;
-
-  const _AnnouncementCard({
-    required this.companyName,
-    required this.dateRange,
-    required this.memberCount,
-    required this.hasMoreMembers,
-    required this.isActive,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.gray100,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.gray200,
-          width: 1
-        ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  companyName,
-                  style: AppTypography.middle14.copyWith(
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: -0.5
-                  ),
-                ),
-                const SizedBox(height: 12,),
-
-                SizedBox(
-                  height: 28, // 아바타 높이에 맞춤
-                  child: Stack(
-                    children: [
-                      ...List.generate(
-                        memberCount + (hasMoreMembers ? 1 : 0),
-                            (index) {
-                          if (index == memberCount && hasMoreMembers) {
-                            return Positioned(
-                              left: index * 20.0,
-                              child: Container(
-                                width: 28,
-                                height: 28,
-                                decoration: BoxDecoration(
-                                  color: AppColors.gray200,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white, width: 2), // 경계선 추가
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    '+3',
-                                    style: AppTypography.small10.copyWith(fontWeight: FontWeight.w600),
-                                  ),
-                                ),
-                              ),
-                            );
-                          }
-
-                          // 일반 아바타 배치
-                          return Positioned(
-                            left: index * 20.0,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 2),
-                              ),
-                              child: CircleAvatar(
-                                radius: 12,
-                                backgroundColor: isActive ? AppColors.gray900 : AppColors.gray300,
-                              ),
-                            ),
-                          );
-                        },
-                      )
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 16,),
-
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Row(
-                children: [
-                  SvgPicture.asset(
-                    AppIcons.clock,
-                    width: 16,
-                    height: 16,
-                  ),
-                  const SizedBox(width: 4,),
-                  Text(
-                    dateRange,
-                    style: AppTypography.small12.copyWith(
-                      color: AppColors.textSecondary,
-                      letterSpacing: -0.5
-                    ),
-                  )
-                ],
-              ),
-              const SizedBox(height: 8,),
-
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 18,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.purple600,
-                  borderRadius: BorderRadius.circular(100),
-                ),
-                child: Text(
-                  '분석하기',
-                  style: AppTypography.small10.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: -0.5,
-                    height: 1.2,
-                  ),
-                ),
-              )
-            ],
-          )
-        ],
-      ),
     );
   }
 }
@@ -572,12 +404,7 @@ class _QuizSectionState extends State<_QuizSection> {
         (quiz?.isSolved == true ? quiz?.answer : null);
 
     return Container(
-      margin: AppDimensions.screenEdgePadding,
       padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: BoxDecoration(
-        color: AppColors.surfacePrimary,
-        borderRadius: BorderRadius.circular(8),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -589,18 +416,6 @@ class _QuizSectionState extends State<_QuizSection> {
                 Flexible(child: Text(
                   '오늘의 퀴즈',
                   style: AppTypography.largeBold16.copyWith(letterSpacing: -0.5),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppColors.purple100,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    '1',
-                    style: AppTypography.smallBold12.copyWith(color: AppColors.primary),
                   ),
                 ),
               ],

@@ -383,28 +383,7 @@ class _PostBodyCard extends StatelessWidget {
             ),
           ],
 
-          // 분석 아이템 연결 정보 (ANALYSIS_SHARE인 경우)
-          if (post.analysisItemId != null) ...[
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color:        AppColors.purple050,
-                borderRadius: BorderRadius.circular(8),
-                border:       Border.all(color: AppColors.purple100),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.analytics_outlined, size: 16, color: AppColors.primary),
-                  const SizedBox(width: 8),
-                  Text(
-                    '연결된 분석 아이템 ID: ${post.analysisItemId}',
-                    style: AppTypography.small12.copyWith(color: AppColors.primary),
-                  ),
-                ],
-              ),
-            ),
-          ],
+          // [MODIFIED] 연결된 분석 아이템 ID 표시 박스 삭제
         ],
       ),
     );
@@ -854,23 +833,23 @@ class _CategoryBadge extends StatelessWidget {
 
   Color get _color {
     switch (category) {
-      case BoardCategory.experience:    return AppColors.primary;
+      case BoardCategory.experience:    return AppColors.secondary;
       case BoardCategory.fraudVote:     return AppColors.info;
-      case BoardCategory.analysisShare: return AppColors.secondary;
+      case BoardCategory.analysisShare: return AppColors.highlight;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color:        _color.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(50),
       ),
       child: Text(
         category.label,
-        style: AppTypography.small10.copyWith(
+        style: AppTypography.small12.copyWith(
           color:      _color,
           fontWeight: FontWeight.w600,
         ),
