@@ -164,7 +164,7 @@ class _MainScreenState extends State<MainScreen> {
               _buildDrawerItem(
                 icon: AppIcons.heart,
                 filledIcon: AppIcons.heartFilled,
-                label: '소식',
+                label: '사례',
                 index: 1,
               ),
               _buildDrawerItem(

@@ -99,3 +99,74 @@ class ReportHistoryItemModel {
     );
   }
 }
+
+// [ADDED] GET /api/v1/reports/detail 응답 모델
+class ContactMethodModel {
+  final String type;
+  final List<String> values;
+
+  const ContactMethodModel({required this.type, required this.values});
+
+  factory ContactMethodModel.fromJson(Map<String, dynamic> json) {
+    return ContactMethodModel(
+      type:   json['type'] as String,
+      values: List<String>.from(json['values'] as List),
+    );
+  }
+}
+
+class DamageModel {
+  final int      reportId;
+  final String   reporterName;
+  final String   reason;
+  final DateTime reportedAt;
+
+  const DamageModel({
+    required this.reportId,
+    required this.reporterName,
+    required this.reason,
+    required this.reportedAt,
+  });
+
+  factory DamageModel.fromJson(Map<String, dynamic> json) {
+    return DamageModel(
+      reportId:     (json['reportId'] as num).toInt(),
+      reporterName: json['reporterName'] as String,
+      reason:       json['reason'] as String,
+      reportedAt:   DateTime.parse(json['reportedAt'] as String),
+    );
+  }
+}
+
+class ReportDetailModel {
+  final String                 companyName;
+  final int                    reportCount;
+  final DateTime               latestReportedAt;
+  final List<ContactMethodModel> contactMethods;
+  final List<DamageModel>      damages;
+  final List<String>           evidenceImageUrls;
+
+  const ReportDetailModel({
+    required this.companyName,
+    required this.reportCount,
+    required this.latestReportedAt,
+    required this.contactMethods,
+    required this.damages,
+    required this.evidenceImageUrls,
+  });
+
+  factory ReportDetailModel.fromJson(Map<String, dynamic> json) {
+    return ReportDetailModel(
+      companyName:       json['companyName'] as String,
+      reportCount:       (json['reportCount'] as num).toInt(),
+      latestReportedAt:  DateTime.parse(json['latestReportedAt'] as String),
+      contactMethods:    (json['contactMethods'] as List)
+          .map((e) => ContactMethodModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      damages:           (json['damages'] as List)
+          .map((e) => DamageModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      evidenceImageUrls: List<String>.from(json['evidenceImageUrls'] as List),
+    );
+  }
+}

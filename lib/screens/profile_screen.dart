@@ -10,6 +10,7 @@ import '../data/repositories/member_repository.dart';
 import '../data/models/member_model.dart';
 import '../core/network/api_exception.dart';
 import 'login_screen.dart';
+import '../core/design_system/widgets/app_header.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -173,6 +174,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+// [MODIFIED] StatelessWidget → StatefulWidget, 프로필 이미지 로드 후 AppHeader에 표시
+class ProfileRouteScreen extends StatefulWidget {
+  const ProfileRouteScreen({super.key});
+
+  @override
+  State<ProfileRouteScreen> createState() => _ProfileRouteScreenState();
+}
+
+class _ProfileRouteScreenState extends State<ProfileRouteScreen> {
+  String? _profileImageUrl; // [MODIFIED]
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfileImage(); // [MODIFIED]
+  }
+
+  // [MODIFIED] 프로필 이미지 URL만 로드
+  Future<void> _loadProfileImage() async {
+    try {
+      final member = await MemberRepository.instance.getMe();
+      if (mounted) setState(() => _profileImageUrl = member.profileImageUrl);
+    } catch (_) {}
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppHeader(
+        title: '프로필',
+        showBackButton: true,
+        onBack: () => Navigator.of(context).maybePop(),
+        profileImageUrl: _profileImageUrl, // [MODIFIED] 로드된 이미지 전달
+        // onProfileTap 미연결 (눌리지 않음)
+      ),
+      body: const ProfileScreen(),
     );
   }
 }
