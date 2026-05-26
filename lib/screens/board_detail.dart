@@ -79,7 +79,6 @@ class _BoardDetailScreenState extends State<BoardDetailScreen> {
           _fraudVote = fraudVote;
           _scrapCount = post.scrapCount;
           _isScrapped = post.isScrapped;
-          _hasVoted = fraudVote?.isVoted ?? false;
         });
       }
     } on ApiException catch (e) {
@@ -119,12 +118,7 @@ class _BoardDetailScreenState extends State<BoardDetailScreen> {
       setState(() => _hasVoted = true);
       // 투표 후 결과 갱신
       final updated = await BoardRepository.instance.getFraudVote(widget.postId);
-      if (mounted) {
-        setState(() {
-        _fraudVote = updated;
-        _hasVoted  = updated.isVoted;
-        });
-      }
+      if (mounted) setState(() => _fraudVote = updated);
     } on ApiException catch (e) {
       if (mounted) {
         AppDialog.show(context, title: '투표 실패', message: e.message);
@@ -389,28 +383,7 @@ class _PostBodyCard extends StatelessWidget {
             ),
           ],
 
-          // 분석 아이템 연결 정보 (ANALYSIS_SHARE인 경우)
-          if (post.analysisItemId != null) ...[
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color:        AppColors.purple050,
-                borderRadius: BorderRadius.circular(8),
-                border:       Border.all(color: AppColors.purple100),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.analytics_outlined, size: 16, color: AppColors.primary),
-                  const SizedBox(width: 8),
-                  Text(
-                    '연결된 분석 아이템 ID: ${post.analysisItemId}',
-                    style: AppTypography.small12.copyWith(color: AppColors.primary),
-                  ),
-                ],
-              ),
-            ),
-          ],
+          // [MODIFIED] 연결된 분석 아이템 ID 표시 박스 삭제
         ],
       ),
     );

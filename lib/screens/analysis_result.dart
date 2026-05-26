@@ -22,7 +22,6 @@ import '../data/models/board_model.dart';
 // 분석 결과 데이터 모델
 enum TrustLevel { good, bad, normal }
 
-// 수정 후
 class AnalysisResultData {
   final String companyName;
   final int trustScore;
@@ -53,6 +52,14 @@ Color trustLevelColor(TrustLevel level) {
   }
 }
 
+// [ADDED] ** 마크다운 강조 문법을 제거하고 순수 텍스트만 반환
+String _stripMarkdownBold(String text) {
+  return text.replaceAllMapped(
+    RegExp(r'\*\*(.+?)\*\*'),
+        (match) => match.group(1) ?? '',
+  );
+}
+
 // 공고 분석 결과 화면
 class AnalysisResultScreen extends StatefulWidget {
   final VoidCallback? onBack;
@@ -69,7 +76,6 @@ class AnalysisResultScreen extends StatefulWidget {
 }
 
 class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
-  // 로딩 및 데이터 상태
   bool _isLoading = true;
   String? _errorMessage;
   AnalysisResultData? _resultData;
@@ -84,22 +90,18 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
     _loadProfile();
   }
 
-  // 3개 API 병렬 호출 후 AnalysisResultData로 변환
   Future<void> _loadResult() async {
     try {
       final id = widget.analysisItemId;
 
-      // [ADDED] COMPLETED 상태가 될 때까지 폴링
       int pollCount = 0;
       while (true) {
         final detail = await AnalysisRepository.instance.getDetail(id);
 
         if (detail.status == AnalysisStatus.completed) {
-          // COMPLETED → AI 분석 결과 + 국가 경고 + 신고 이력 조회
           final results = await Future.wait([
             AnalysisRepository.instance.getAiAnalysis(id),
             AnalysisRepository.instance.getCountryWarning(id),
-            // [ADDED] 신고 이력 조회: 회사명 + 연락 수단 유형으로 검색
             ReportRepository.instance.getReportHistory(
               companyName: detail.companyName,
               identifierType: detail.contactType,
@@ -108,16 +110,13 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
 
           final aiResult = results[0] as AiAnalysisResultModel;
           final warning = results[1] as dynamic;
-          // [ADDED] 신고 이력 항목 추출
           final historyItems = results[2] as List<ReportHistoryItemModel>;
 
-          // [ADDED] 신고 이력 문자열 포맷: 항목별 한 줄, 없으면 안내 문구
           final reportHistory = historyItems.isEmpty
               ? '신고 이력이 없습니다.'
               : historyItems.map((h) {
             final date =
-                '${h.reportedAt.year}.${h.reportedAt.month.toString().padLeft(
-                2, '0')}';
+                '${h.reportedAt.year}.${h.reportedAt.month.toString().padLeft(2, '0')}';
             return '• ${h.identifierType}: ${h.identifierValue}  ($date)';
           }).join('\n');
 
@@ -135,24 +134,19 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
               companySummary: aiResult.message,
               countryVerification: warning.warningMessage as String,
               reportHistory: reportHistory,
-              // [ADDED]
-              reportHistoryCount: historyItems.length, // [ADDED]
+              reportHistoryCount: historyItems.length,
               location: aiResult.location,
             );
             _isLoading = false;
           });
           return;
-        }
-        else if (detail.status == AnalysisStatus.failed) {
-          // [ADDED] 분석 실패 처리
+        } else if (detail.status == AnalysisStatus.failed) {
           setState(() {
             _errorMessage = '분석에 실패했습니다. 다시 시도해 주세요.';
             _isLoading = false;
           });
           return;
-
         } else if (pollCount >= _maxPollCount) {
-          // [ADDED] 최대 대기 시간 초과
           setState(() {
             _errorMessage = '분석에 시간이 오래 걸리고 있습니다. 잠시 후 다시 확인해 주세요.';
             _isLoading = false;
@@ -160,11 +154,9 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
           return;
         }
 
-        // [ADDED] PENDING/PROCESSING → 대기 후 재시도
         pollCount++;
         await Future.delayed(_pollInterval);
       }
-
     } on ApiException catch (e) {
       setState(() {
         _errorMessage = e.message;
@@ -203,7 +195,8 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
         BoardPostCreateRequest(
           category: 'AI_ANALYSIS',
           title: '${_resultData!.companyName}의 AI 분석 결과',
-          content: _resultData!.companySummary,
+          // [MODIFIED] ** 마크다운 강조 문법 제거 후 전달
+          content: _stripMarkdownBold(_resultData!.companySummary),
           imageNames: [],
           analysisItemId: widget.analysisItemId,
         ),
@@ -235,12 +228,11 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
         title: '공고 분석 결과',
         showBackButton: true,
         onBack: widget.onBack ?? () => Navigator.of(context).maybePop(),
-        profileImageUrl: _profileImageUrl, // [ADDED]
-        onProfileTap: () => Navigator.of(context).push( // [ADDED]
+        profileImageUrl: _profileImageUrl,
+        onProfileTap: () => Navigator.of(context).push(
           MaterialPageRoute(builder: (_) => const ProfileScreen()),
         ),
       ),
-      // [ADDED] 로딩 / 에러 / 성공 상태 분기
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
           : _errorMessage != null
@@ -256,13 +248,12 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // [수정] 페이지 헤더 + 공유하기 버튼 추가
+            // [수정] 페이지 헤더 + 공유하기 버튼
             Padding(
               padding: const EdgeInsets.all(AppDimensions.cardPadding),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // [ADDED] 제목·부제목을 Expanded로 감싸 공유 버튼과 나란히 배치
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -282,21 +273,22 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
                       ],
                     ),
                   ),
-                  // [ADDED] 공유하기 버튼 (아이콘 + 텍스트)
+                  // [ADDED] 공유하기 버튼
                   GestureDetector(
                     onTap: _onShareTap,
                     child: Column(
                       children: [
                         SvgPicture.asset(
                           AppIcons.share,
-                          width: 35,
-                          height: 35,
+                          width: 38,
+                          height: 38,
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 4),
                         Text(
                           '공유하기',
-                          style: AppTypography.small10.copyWith(
+                          style: AppTypography.small12.copyWith(
                             color: AppColors.gray500,
+                            letterSpacing: -0.3,
                           ),
                         ),
                       ],
@@ -370,7 +362,6 @@ class _ShareConfirmDialog extends StatelessWidget {
             const SizedBox(height: 24),
             Row(
               children: [
-                // 취소 버튼
                 Expanded(
                   child: SizedBox(
                     height: 48,
@@ -384,15 +375,12 @@ class _ShareConfirmDialog extends StatelessWidget {
                       ),
                       child: Text(
                         '취소',
-                        style: AppTypography.large16.copyWith(
-                          color: AppColors.gray500,
-                        ),
+                        style: AppTypography.large16.copyWith(color: AppColors.gray500),
                       ),
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
-                // 공유하기 버튼
                 Expanded(
                   child: SizedBox(
                     height: 48,
@@ -438,9 +426,9 @@ class _TrustScoreCardState extends State<_TrustScoreCard> {
 
   String get _levelLabel {
     switch (widget.data.trustLevel) {
-      case TrustLevel.good:   return '안전'; // [수정] Good → 안전
-      case TrustLevel.bad:    return '위험'; // [수정] Bad → 위험
-      case TrustLevel.normal: return '주의'; // [수정] Normal → 주의
+      case TrustLevel.good:   return '안전';
+      case TrustLevel.bad:    return '위험';
+      case TrustLevel.normal: return '주의';
     }
   }
 
@@ -460,7 +448,6 @@ class _TrustScoreCardState extends State<_TrustScoreCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── 헤더 행: AI 신뢰도 + 레벨 뱃지 + 물음표 아이콘 + [툴팁] ──
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -483,9 +470,7 @@ class _TrustScoreCardState extends State<_TrustScoreCard> {
                       ),
                     ),
                   ),
-
-                  const SizedBox(width: 6,),
-
+                  const SizedBox(width: 6),
                   GestureDetector(
                     onTap: () => setState(() => _showTooltip = !_showTooltip),
                     child: Padding(
@@ -501,7 +486,6 @@ class _TrustScoreCardState extends State<_TrustScoreCard> {
                       ),
                     ),
                   ),
-
                   if (_showTooltip) ...[
                     const SizedBox(width: 4),
                     Flexible(
@@ -524,9 +508,7 @@ class _TrustScoreCardState extends State<_TrustScoreCard> {
                   ],
                 ],
               ),
-
               const SizedBox(height: 8),
-
               Padding(
                 padding: const EdgeInsets.only(top: 2.0),
                 child: Text(
@@ -537,9 +519,7 @@ class _TrustScoreCardState extends State<_TrustScoreCard> {
               const SizedBox(width: 8),
             ],
           ),
-
           const SizedBox(height: 12),
-
           Text(
             '\'${widget.data.companyName}\'는 ${widget.data.trustScore}% 신뢰할 수 있습니다.',
             style: AppTypography.middle14.copyWith(
@@ -547,9 +527,7 @@ class _TrustScoreCardState extends State<_TrustScoreCard> {
               color: AppColors.gray900,
             ),
           ),
-
           const SizedBox(height: 16),
-
           _TrustProgressBar(
             score: widget.data.trustScore,
             iconPath: _scoreIconPath,
@@ -584,65 +562,54 @@ class _TrustProgressBar extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.gray200),
       ),
-      padding: EdgeInsets.all(8),
+      padding: const EdgeInsets.all(8),
       child: Row(
         children: [
-          // 이모지 아이콘
-          SvgPicture.asset(
-            iconPath,
-            width: 32,
-            height: 32,
-          ),
-
+          SvgPicture.asset(iconPath, width: 32, height: 32),
           const SizedBox(width: 12),
-
-          // 프로그래스 바
           Expanded(
-              child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return Stack(
-                      children: [
-                        // 배경 트랙
-                        Container(
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: AppColors.gray200,
-                            borderRadius: BorderRadius.circular(100),
-                          ),
-                        ),
-                        Container(
-                          height: 4,
-                          width: constraints.maxWidth * ratio,
-                          decoration: BoxDecoration(
-                            color: barColor,
-                            borderRadius: BorderRadius.circular(100),
-                          ),
-                        )
-                      ],
-                    );
-                  }
-              )
-          )
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return Stack(
+                  children: [
+                    Container(
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppColors.gray200,
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                    ),
+                    Container(
+                      height: 4,
+                      width: constraints.maxWidth * ratio,
+                      decoration: BoxDecoration(
+                        color: barColor,
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-// 공통 정보 섹션 카드 (그래서 ~, 국가 기반 검증, 신고 이력)
-// 수정 후
+// 공통 정보 섹션 카드
 class _InfoSection extends StatelessWidget {
-  final String  title;
-  final String  content;
-  final int?    count; // [ADDED] 선택적 건수 뱃지 (신고 이력 섹션에서만 사용)
+  final String title;
+  final String content;
+  final int?   count;
 
   const _InfoSection({
     required this.title,
     required this.content,
-    this.count, // [ADDED]
+    this.count,
   });
 
-  // [추가] ** 감싸인 텍스트를 파싱하여 TextSpan 리스트로 변환
   List<TextSpan> _buildStyledSpans(
       String text, {
         required TextStyle normalStyle,
@@ -675,7 +642,6 @@ class _InfoSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // [MODIFIED] count가 있을 때 제목 옆에 건수 뱃지 표시
           Row(
             children: [
               Text(
@@ -687,13 +653,13 @@ class _InfoSection extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color:        count! > 0 ? AppColors.error : AppColors.gray300,
+                    color: count! > 0 ? AppColors.error : AppColors.gray300,
                     borderRadius: BorderRadius.circular(100),
                   ),
                   child: Text(
                     '$count건',
                     style: AppTypography.small12.copyWith(
-                      color:      Colors.white,
+                      color: Colors.white,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -702,7 +668,6 @@ class _InfoSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          // [수정] ** 패턴 파싱하여 중요 텍스트 강조 표시
           RichText(
             text: TextSpan(
               children: _buildStyledSpans(

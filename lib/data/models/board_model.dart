@@ -9,7 +9,7 @@
 enum BoardCategory {
   experience('EXPERIENCE', '경험담'),
   fraudVote('FRAUD_VOTE', '사기 의심 투표'),
-  analysisShare('ANALYSIS_SHARE', '분석 결과 공유');
+  analysisShare('AI_ANALYSIS', '분석 결과 공유');
 
   final String value;
   final String label;
