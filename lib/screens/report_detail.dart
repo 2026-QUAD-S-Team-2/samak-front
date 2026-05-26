@@ -10,6 +10,8 @@ import '../core/design_system/widgets/app_dialog.dart';
 import '../core/network/api_exception.dart';
 import '../data/models/report_model.dart';
 import '../data/repositories/report_repository.dart';
+import '../data/repositories/member_repository.dart';
+import '../screens/profile_screen.dart';
 
 class ReportDetailScreen extends StatefulWidget {
   final String companyName;
@@ -24,11 +26,13 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
   // [ADDED] API 상태 변수
   bool _isLoading = true;
   ReportDetailModel? _detail;
+  String? _profileImageUrl;
 
   @override
   void initState() {
     super.initState();
-    _loadDetail(); // [ADDED] 화면 진입 시 API 호출
+    _loadDetail();
+    _loadProfile();
   }
 
   // [ADDED] API 호출 메서드
@@ -52,6 +56,14 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
     }
   }
 
+  // [MODIFIED] 프로필 이미지 로드
+  Future<void> _loadProfile() async {
+    try {
+      final member = await MemberRepository.instance.getMe();
+      if (mounted) setState(() => _profileImageUrl = member.profileImageUrl);
+    } catch (_) {}
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -60,6 +72,10 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
         title: '피해 사례',
         showBackButton: true,
         onBack: () => Navigator.of(context).maybePop(),
+        profileImageUrl: _profileImageUrl,
+        onProfileTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const ProfileScreen()),
+        ),
       ),
       // [MODIFIED] 더미 데이터 → _isLoading / _detail 상태 기반 분기 렌더링
       body: _isLoading
