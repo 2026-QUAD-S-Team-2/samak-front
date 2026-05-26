@@ -62,4 +62,15 @@ class ReportRepository {
         .map((e) => ReportHistoryItemModel.fromJson(e as Map<String, dynamic>))
         .toList();
   }
+
+  // [ADDED] 신고 상세 조회 — GET /api/v1/reports/detail
+  Future<ReportDetailModel> getReportDetail({
+    required String companyName,
+  }) async {
+    final data = await DioClient.instance.get(
+      '/api/v1/reports/detail',
+      queryParameters: {'companyName': companyName},
+    );
+    return ReportDetailModel.fromJson(data as Map<String, dynamic>);
+  }
 }
