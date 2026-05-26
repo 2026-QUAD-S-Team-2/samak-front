@@ -416,12 +416,11 @@ class _CategoryBadge extends StatelessWidget {
   final BoardCategory category;
   const _CategoryBadge({required this.category});
 
-  // [MODIFIED] analysisShare 색상을 AppColors.primary로 변경 (경험담과 구분)
   Color get _color {
     switch (category) {
-      case BoardCategory.experience:    return AppColors.info;
-      case BoardCategory.fraudVote:     return AppColors.warning;
-      case BoardCategory.analysisShare: return AppColors.primary;
+      case BoardCategory.experience:    return AppColors.secondary;
+      case BoardCategory.fraudVote:     return AppColors.info;
+      case BoardCategory.analysisShare: return AppColors.highlight;
     }
   }
 

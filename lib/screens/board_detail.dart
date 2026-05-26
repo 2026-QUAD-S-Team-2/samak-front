@@ -833,23 +833,23 @@ class _CategoryBadge extends StatelessWidget {
 
   Color get _color {
     switch (category) {
-      case BoardCategory.experience:    return AppColors.primary;
+      case BoardCategory.experience:    return AppColors.secondary;
       case BoardCategory.fraudVote:     return AppColors.info;
-      case BoardCategory.analysisShare: return AppColors.secondary;
+      case BoardCategory.analysisShare: return AppColors.highlight;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color:        _color.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(50),
       ),
       child: Text(
         category.label,
-        style: AppTypography.small10.copyWith(
+        style: AppTypography.small12.copyWith(
           color:      _color,
           fontWeight: FontWeight.w600,
         ),
