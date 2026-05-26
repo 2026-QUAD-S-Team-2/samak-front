@@ -53,35 +53,38 @@ class ReportDetailScreen extends StatelessWidget {
         onBack: () => Navigator.of(context).maybePop(),
       ),
       body: ListView(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppDimensions.screenPadding,
-          vertical: 24,
-        ),
+        padding: const EdgeInsets.only(top: 0, bottom: 24),
         children: [
           // ── 회사명 + 신고 건수 + 최근 신고일 ──
           _HeaderSection(detail: dummy),
-          const SizedBox(height: 24),
+          const SizedBox(height: 36),
 
-          // ── 연락 수단 ──
-          _SectionCard(
-            title: '연락 수단',
-            child: _ContactMethodsContent(methods: dummy.contactMethods),
-          ),
-          const SizedBox(height: 24),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppDimensions.screenPadding),
+            child: Column(
+              children: [
+                // ── 연락 수단 ──
+                _SectionCard(
+                  title: '연락 수단',
+                  child: _ContactMethodsContent(methods: dummy.contactMethods),
+                ),
+                const SizedBox(height: 36),
 
-          // ── 피해 내용 ──
-          _SectionCard(
-            title: '피해 내용',
-            child: _DamagesContent(damages: dummy.damages),
-          ),
-          const SizedBox(height: 24),
+                // ── 피해 내용 ──
+                _SectionCard(
+                  title: '피해 내용',
+                  child: _DamagesContent(damages: dummy.damages),
+                ),
+                const SizedBox(height: 36),
 
-          // ── 증거 자료 ──
-          _SectionCard(
-            title: '증거 자료',
-            child: _EvidenceImagesContent(urls: dummy.evidenceImageUrls),
+                // ── 증거 자료 ──
+                _SectionCard(
+                  title: '증거 자료',
+                  child: _EvidenceImagesContent(urls: dummy.evidenceImageUrls),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 24),
         ],
       ),
     );
@@ -103,10 +106,7 @@ class _HeaderSection extends StatelessWidget {
       width: double.infinity,
       color: AppColors.gray100,
       padding: const EdgeInsets.fromLTRB(
-        AppDimensions.screenPadding, 24, AppDimensions.screenPadding, 0,
-      ),
-      margin: const EdgeInsets.symmetric(
-        horizontal: -AppDimensions.screenPadding,
+        AppDimensions.screenPadding, 24, AppDimensions.screenPadding, 24,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -223,9 +223,8 @@ class _ContactChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: Color(0xFFDBE6FF),
+        color: Color(0xFFEBF1FF),
         borderRadius: BorderRadius.circular(50),
-        border: Border.all(color: AppColors.info, width: 1),
       ),
       child: Text(
         _label,
