@@ -178,9 +178,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-// [ADDED] Navigator.push로 진입할 때 AppHeader(뒤로가기)를 포함하는 래퍼 화면
-class ProfileRouteScreen extends StatelessWidget {
+// [MODIFIED] StatelessWidget → StatefulWidget, 프로필 이미지 로드 후 AppHeader에 표시
+class ProfileRouteScreen extends StatefulWidget {
   const ProfileRouteScreen({super.key});
+
+  @override
+  State<ProfileRouteScreen> createState() => _ProfileRouteScreenState();
+}
+
+class _ProfileRouteScreenState extends State<ProfileRouteScreen> {
+  String? _profileImageUrl; // [MODIFIED]
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfileImage(); // [MODIFIED]
+  }
+
+  // [MODIFIED] 프로필 이미지 URL만 로드
+  Future<void> _loadProfileImage() async {
+    try {
+      final member = await MemberRepository.instance.getMe();
+      if (mounted) setState(() => _profileImageUrl = member.profileImageUrl);
+    } catch (_) {}
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -190,6 +211,8 @@ class ProfileRouteScreen extends StatelessWidget {
         title: '프로필',
         showBackButton: true,
         onBack: () => Navigator.of(context).maybePop(),
+        profileImageUrl: _profileImageUrl, // [MODIFIED] 로드된 이미지 전달
+        // onProfileTap 미연결 (눌리지 않음)
       ),
       body: const ProfileScreen(),
     );
