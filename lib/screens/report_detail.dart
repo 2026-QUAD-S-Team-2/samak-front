@@ -1,50 +1,59 @@
 // [ADDED] 피해 사례 상세 조회 화면
 // GET /api/v1/reports/detail?companyName={companyName}
+// [MODIFIED] StatelessWidget → StatefulWidget, 더미 데이터 제거, 실제 API 연동
 import 'package:flutter/material.dart';
 import '../core/design_system/app_colors.dart';
 import '../core/design_system/app_dimensions.dart';
 import '../core/design_system/app_text_styles.dart';
 import '../core/design_system/widgets/app_header.dart';
+import '../core/design_system/widgets/app_dialog.dart';
+import '../core/network/api_exception.dart';
 import '../data/models/report_model.dart';
+import '../data/repositories/report_repository.dart';
 
-class ReportDetailScreen extends StatelessWidget {
+class ReportDetailScreen extends StatefulWidget {
   final String companyName;
 
   const ReportDetailScreen({super.key, required this.companyName});
 
   @override
-  Widget build(BuildContext context) {
-    // [ADDED] 더미 데이터 (API 연동 전 UI 확인용)
-    final dummy = ReportDetailModel(
-      companyName: companyName,
-      reportCount: 2,
-      latestReportedAt: DateTime(2026, 3, 3),
-      contactMethods: [
-        ContactMethodModel(type: 'KAKAO', values: ['카카오톡 ID']),
-        ContactMethodModel(type: 'MESSAGE', values: ['010-1234-5678']),
-      ],
-      damages: [
-        DamageModel(
-          reportId: 1,
-          reporterName: 'sy********님',
-          reason:
-          '회사 명부터 구라같음. 직접 전화해봤는데 한국인 받고 횡설수설하는데 바로 의심됨. 아무것도 안했는데 개인 정보 알려달라 해서 신고함. 님들도 조심하세,,',
-          reportedAt: DateTime(2026, 3, 2),
-        ),
-        DamageModel(
-          reportId: 2,
-          reporterName: 'sy********님',
-          reason: '돈부터 먼저 입금하라 하는 회사가 어디있습니까?',
-          reportedAt: DateTime(2026, 3, 7),
-        ),
-      ],
-      evidenceImageUrls: [
-        'https://picsum.photos/200/300?random=1',
-        'https://picsum.photos/200/300?random=2',
-        'https://picsum.photos/200/300?random=3',
-      ],
-    );
+  State<ReportDetailScreen> createState() => _ReportDetailScreenState();
+}
 
+class _ReportDetailScreenState extends State<ReportDetailScreen> {
+  // [ADDED] API 상태 변수
+  bool _isLoading = true;
+  ReportDetailModel? _detail;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDetail(); // [ADDED] 화면 진입 시 API 호출
+  }
+
+  // [ADDED] API 호출 메서드
+  Future<void> _loadDetail() async {
+    setState(() => _isLoading = true);
+    try {
+      final detail = await ReportRepository.instance.getReportDetail(
+        companyName: widget.companyName,
+      );
+      setState(() => _detail = detail);
+    } on ApiException catch (e) {
+      if (mounted) {
+        AppDialog.show(
+          context,
+          title: '조회 실패',
+          message: e.message,
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppHeader(
@@ -52,11 +61,18 @@ class ReportDetailScreen extends StatelessWidget {
         showBackButton: true,
         onBack: () => Navigator.of(context).maybePop(),
       ),
-      body: ListView(
+      // [MODIFIED] 더미 데이터 → _isLoading / _detail 상태 기반 분기 렌더링
+      body: _isLoading
+          ? const Center(
+        child: CircularProgressIndicator(color: AppColors.primary),
+      )
+          : _detail == null
+          ? const SizedBox.shrink()
+          : ListView(
         padding: const EdgeInsets.only(top: 0, bottom: 24),
         children: [
           // ── 회사명 + 신고 건수 + 최근 신고일 ──
-          _HeaderSection(detail: dummy),
+          _HeaderSection(detail: _detail!),
           const SizedBox(height: 36),
 
           Padding(
@@ -66,21 +82,21 @@ class ReportDetailScreen extends StatelessWidget {
                 // ── 연락 수단 ──
                 _SectionCard(
                   title: '연락 수단',
-                  child: _ContactMethodsContent(methods: dummy.contactMethods),
+                  child: _ContactMethodsContent(methods: _detail!.contactMethods),
                 ),
                 const SizedBox(height: 36),
 
                 // ── 피해 내용 ──
                 _SectionCard(
                   title: '피해 내용',
-                  child: _DamagesContent(damages: dummy.damages),
+                  child: _DamagesContent(damages: _detail!.damages),
                 ),
                 const SizedBox(height: 36),
 
                 // ── 증거 자료 ──
                 _SectionCard(
                   title: '증거 자료',
-                  child: _EvidenceImagesContent(urls: dummy.evidenceImageUrls),
+                  child: _EvidenceImagesContent(urls: _detail!.evidenceImageUrls),
                 ),
               ],
             ),
@@ -136,7 +152,7 @@ class _HeaderSection extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 10,),
+          const SizedBox(height: 10),
         ],
       ),
     );
@@ -280,7 +296,6 @@ class _DamageItem extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
