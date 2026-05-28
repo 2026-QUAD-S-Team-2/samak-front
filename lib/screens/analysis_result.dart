@@ -345,13 +345,13 @@ class _ShareConfirmDialog extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              '게시물에 공유하기',
+              '게시판에 공유하기',
               style: AppTypography.largeBold16.copyWith(letterSpacing: -0.5),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
             Text(
-              '\'$companyName\'의 AI 분석 결과를\n게시물에 공유하시겠습니까?',
+              '\'$companyName\'의 AI 분석 결과를\n게시판에 공유하시겠습니까?',
               style: AppTypography.middle14.copyWith(
                 color: AppColors.textSecondary,
                 height: 1.6,
