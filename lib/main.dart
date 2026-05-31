@@ -162,8 +162,8 @@ class _MainScreenState extends State<MainScreen> {
                 index: 0,
               ),
               _buildDrawerItem(
-                icon: AppIcons.heart,
-                filledIcon: AppIcons.heartFilled,
+                icon: AppIcons.alert,
+                filledIcon: AppIcons.alertFilled,
                 label: '피해 사례',
                 index: 1,
               ),
