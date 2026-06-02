@@ -16,7 +16,6 @@ import '../screens/profile_screen.dart';
 import '../data/models/country_model.dart';
 import '../data/models/city_model.dart';
 import '../data/models/analysis_item_create_request.dart';
-import '../data/models/analysis_item_list_model.dart';
 import '../core/network/api_exception.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
@@ -220,42 +219,19 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
       // [DEBUG] 서버로 보내는 요청값 확인
       debugPrint('[AnalysisRegister] request json: ${request.toJson()}');
 
-      var result = await AnalysisRepository.instance.createItem(request);
-      // [DEBUG] 서버 응답 raw 확인 (createItem 내부에서 fromJson 호출 전)
-      debugPrint('[AnalysisRegister] createItem 응답 - id: ${result.id}, status: ${result.status}, companyName: ${result.companyName}, countryCode: ${result.countryCode}, sourceUrl: ${result.sourceUrl}, contactType: ${result.contactType}');
-
-      // 상태가 COMPLETED가 될 때까지 API 폴링(대기)
-      int pollCount = 0;
-      const int maxPollCount = 20; // 3초 * 20번 = 최대 60초 대기 제한
-
-      while ((result.status == AnalysisStatus.pending ||
-          result.status == AnalysisStatus.processing) &&
-          pollCount < maxPollCount) {
-        await Future.delayed(const Duration(seconds: 3));
-        result = await AnalysisRepository.instance.getDetail(result.id);
-        debugPrint('[AnalysisRegister] 폴링 $pollCount회 - status: ${result.status}');
-        pollCount++;
-      }
+      // [수정] 서버 AI 분석이 비동기 처리되므로, 폴링 없이 등록 완료 즉시 목록 페이지로 리다이렉트
+      final result = await AnalysisRepository.instance.createItem(request);
+      debugPrint('[AnalysisRegister] createItem 응답 - id: ${result.id}, status: ${result.status}');
 
       if (!mounted) return;
 
-      // 최종 상태에 따른 분기 처리
-      if (result.status == AnalysisStatus.completed) {
-        _showCompletionBottomSheet(result.id);
-      } else if (result.status == AnalysisStatus.failed) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('분석에 실패했어요. 다시 시도해 주세요.')),
-        );
-      } else {
-        // 타임아웃: 최대 대기 횟수 초과
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('분석이 지연되고 있어요. 완료되면 목록에서 확인할 수 있어요.'),
-            duration: Duration(seconds: 4),
-          ),
-        );
-        widget.onGoToList?.call();
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('공고가 등록되었어요. 분석이 완료되면 목록에서 확인할 수 있어요.'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      widget.onGoToList?.call();
     } on ApiException catch (e) {
       debugPrint('[AnalysisRegister] 분석 등록 실패 - statusCode: ${e.statusCode}, message: ${e.message}, raw: ${e.rawResponse}');
       if (mounted) {
