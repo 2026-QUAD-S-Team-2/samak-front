@@ -396,6 +396,7 @@ class _AnalysisRegisterScreenState extends State<AnalysisRegisterScreen> {
                 value: _selectedCountry?.displayName,
                 hintText: '국가를 선택해 주세요',
                 items: _countries.map((e) => e.displayName).toList(),
+                enableSearch: true,
                 onChanged: (name) {
                   final country = _countries
                       .firstWhere((e) => e.displayName == name);
