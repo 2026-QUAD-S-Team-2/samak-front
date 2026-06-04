@@ -1,3 +1,4 @@
+import 'dart:async'; // [수정] 폴링용 Timer import 추가
 import 'package:flutter/material.dart';
 import '../core/design_system/app_colors.dart';
 import '../core/design_system/app_dimensions.dart';
@@ -22,25 +23,27 @@ class AnalysisListScreen extends StatefulWidget {
   const AnalysisListScreen({super.key, this.onBackToHome});
 
   @override
-  State<AnalysisListScreen> createState() => _AnalysisListScreenState();
+  State<AnalysisListScreen> createState() => AnalysisListScreenState();
 }
 
-class _AnalysisListScreenState extends State<AnalysisListScreen> {
+class AnalysisListScreenState extends State<AnalysisListScreen> {
   List<AnalysisItemListModel> _items = [];
   bool _isLoading = true;
   String? _errorMessage;
   SortMode _sortMode = SortMode.date;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  // [수정] 분석 중 아이템 자동 갱신을 위한 폴링 타이머
+  Timer? _pollingTimer;
 
   @override
   void initState() {
     super.initState();
-    _loadItems();
+    loadItems();
   }
 
-  // 목록 조회 — trustLow는 RISK_SCORE로 받아 클라이언트에서 역순 처리
-  Future<void> _loadItems() async {
+  // [수정] 외부(GlobalKey)에서 호출 가능하도록 public 메서드로 변경
+  Future<void> loadItems() async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -51,6 +54,8 @@ class _AnalysisListScreenState extends State<AnalysisListScreen> {
           : AnalysisSortType.riskScore;
       final items = await AnalysisRepository.instance.getItems(sortType: sortType);
       setState(() => _items = items);
+      // [수정] 분석 중인 아이템이 있으면 폴링 시작, 없으면 중단
+      _updatePolling();
     } on ApiException catch (e) {
       setState(() => _errorMessage = e.message);
     } finally {
@@ -58,8 +63,40 @@ class _AnalysisListScreenState extends State<AnalysisListScreen> {
     }
   }
 
+  // [수정] pending/processing 아이템 여부에 따라 폴링 타이머 시작 또는 중단
+  void _updatePolling() {
+    final hasPending = _items.any((e) =>
+    e.status == AnalysisStatus.pending ||
+        e.status == AnalysisStatus.processing);
+
+    if (hasPending) {
+      _pollingTimer ??= Timer.periodic(const Duration(seconds: 5), (_) async {
+        final sortType = _sortMode == SortMode.date
+            ? AnalysisSortType.latest
+            : AnalysisSortType.riskScore;
+        try {
+          final items = await AnalysisRepository.instance.getItems(sortType: sortType);
+          if (!mounted) return;
+          setState(() => _items = items);
+          // [수정] 갱신 후 더 이상 분석 중인 아이템이 없으면 폴링 중단
+          final stillPending = items.any((e) =>
+          e.status == AnalysisStatus.pending ||
+              e.status == AnalysisStatus.processing);
+          if (!stillPending) {
+            _pollingTimer?.cancel();
+            _pollingTimer = null;
+          }
+        } catch (_) {}
+      });
+    } else {
+      _pollingTimer?.cancel();
+      _pollingTimer = null;
+    }
+  }
+
   @override
   void dispose() {
+    _pollingTimer?.cancel(); // [수정] 화면 이탈 시 폴링 타이머 정리
     _searchController.dispose();
     super.dispose();
   }
@@ -168,7 +205,7 @@ class _AnalysisListScreenState extends State<AnalysisListScreen> {
                         _sortMode = SortMode.trustHigh;
                       }
                     });
-                    _loadItems();
+                    loadItems(); // [수정] public 메서드 호출로 변경
                   },
                 ),
                 const SizedBox(width: 8),
@@ -177,7 +214,7 @@ class _AnalysisListScreenState extends State<AnalysisListScreen> {
                   isSelected: _sortMode == SortMode.date,
                   onTap: () {
                     setState(() => _sortMode = SortMode.date);
-                    _loadItems();
+                    loadItems(); // [수정] public 메서드 호출로 변경
                   },
                 ),
               ],
@@ -212,7 +249,7 @@ class _AnalysisListScreenState extends State<AnalysisListScreen> {
                 onGoToList: () => Navigator.of(context).pop(),
               ),
             ),
-          );
+          ).then((_) => loadItems());
         },
         backgroundColor: AppColors.primary,
         shape: const CircleBorder(),

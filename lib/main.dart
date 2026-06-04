@@ -52,6 +52,8 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  // [수정] AnalysisListScreen의 loadItems()를 외부에서 호출하기 위한 GlobalKey 추가
+  final GlobalKey<AnalysisListScreenState> _analysisListKey = GlobalKey<AnalysisListScreenState>();
   MemberModel? _member;
 
   @override
@@ -69,8 +71,16 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
-  void _onItemTapped(int index) {
+  // [수정] 탭 전환을 한 곳에서 처리 — 분석 탭(index 2) 진입 시 목록 자동 새로고침
+  void _switchTab(int index) {
     setState(() => _selectedIndex = index);
+    if (index == 2) {
+      _analysisListKey.currentState?.loadItems();
+    }
+  }
+
+  void _onItemTapped(int index) {
+    _switchTab(index); // [수정] _switchTab으로 위임
     Navigator.of(context).pop();
   }
 
@@ -126,9 +136,7 @@ class _MainScreenState extends State<MainScreen> {
         onMenuTap: () => _scaffoldKey.currentState?.openDrawer(),
         profileImageUrl: _member?.profileImageUrl,
         onProfileTap: () {
-          setState(() {
-            _selectedIndex = 4;
-          });
+          _switchTab(4); // [수정] _switchTab으로 통일
         },
       ),
       // [MODIFIED] 사이드바 디자인 전면 변경: 로고+X 헤더 / 선택 시 Filled 아이콘 / 하단 로그아웃+프로필
@@ -162,9 +170,9 @@ class _MainScreenState extends State<MainScreen> {
                 index: 0,
               ),
               _buildDrawerItem(
-                icon: AppIcons.alert,
-                filledIcon: AppIcons.alertFilled,
-                label: '피해 사례',
+                icon: AppIcons.heart,
+                filledIcon: AppIcons.heartFilled,
+                label: '소식',
                 index: 1,
               ),
               _buildDrawerItem(
@@ -252,12 +260,13 @@ class _MainScreenState extends State<MainScreen> {
   List<Widget> _buildScreens() {
     return [
       HomeScreen(
-        onProfileTap: () => setState(() => _selectedIndex = 4),
+        onProfileTap: () => _switchTab(4), // [수정] _switchTab으로 통일
       ),
       const ReportListScreen(),
+      // [수정] ValueKey 제거, GlobalKey 연결 — 탭 진입 시 loadItems() 호출로 갱신 처리
       AnalysisListScreen(
-        key: ValueKey(_selectedIndex),
-        onBackToHome: () => setState(() => _selectedIndex = 0),
+        key: _analysisListKey,
+        onBackToHome: () => _switchTab(0), // [수정] _switchTab으로 통일
       ),
       const BoardListScreen(),
       const ProfileScreen(),
@@ -266,30 +275,11 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<String> _titles = [
     '사막',
-    '소식',
+    '피해 사례',
     '분석 전체 리스트',
     '게시판',
     '프로필',
   ];
-
-/*
-  @override
-  Widget build(BuildContext context) {
-    final bool showAppBar = _selectedIndex != 0 && _selectedIndex != 2 && _selectedIndex != 4;
-    return Scaffold(
-      appBar: showAppBar ? AppHeader(title: _titles[_selectedIndex]) : null,
-      body: _buildScreens()[_selectedIndex],
-      bottomNavigationBar: AppBottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-      ),
-    );
-  }
-  */
 }
 
 class _PlaceholderScreen extends StatelessWidget {
