@@ -307,9 +307,9 @@ class _FraudGuideSectionState extends State<_FraudGuideSection> {
 
         const SizedBox(height: 12),
 
-        // [ADDED] 캐러셀 이미지
-        SizedBox(
-          height: 270,
+        // 고정 height 제거 → AspectRatio(317:276)로 비율 고정, fitWidth로 잘림 방지
+        AspectRatio(
+          aspectRatio: 317 / 276,
           child: PageView.builder(
             controller: _pageController,
             itemCount: _images.length,
@@ -321,7 +321,7 @@ class _FraudGuideSectionState extends State<_FraudGuideSection> {
                   borderRadius: BorderRadius.circular(12),
                   child: Image.asset(
                     _images[index],
-                    fit: BoxFit.cover,
+                    fit: BoxFit.fitWidth,
                     width: double.infinity,
                   ),
                 ),
