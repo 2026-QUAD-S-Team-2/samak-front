@@ -26,7 +26,7 @@ class SamakFEApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'SamakFE',
+      title: 'Samak',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
         useMaterial3: true,
@@ -170,9 +170,9 @@ class _MainScreenState extends State<MainScreen> {
                 index: 0,
               ),
               _buildDrawerItem(
-                icon: AppIcons.heart,
-                filledIcon: AppIcons.heartFilled,
-                label: '소식',
+                icon: AppIcons.alert,
+                filledIcon: AppIcons.alertFilled,
+                label: '피해 사례',
                 index: 1,
               ),
               _buildDrawerItem(
