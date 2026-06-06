@@ -6,6 +6,8 @@ import '../core/design_system/app_text_styles.dart';
 import '../screens/analysis_register.dart';
 import '../screens/analysis_result.dart';
 // API 연동
+import '../data/models/country_model.dart';
+import '../data/models/city_model.dart';
 import '../data/repositories/analysis_repository.dart';
 import '../data/models/analysis_item_list_model.dart';
 import '../core/network/api_exception.dart';
@@ -447,7 +449,8 @@ class _AnalysisItemCard extends StatelessWidget {
                       alignment: Alignment.centerRight,
                       child: _InfoColumn(
                         label: '국가 / 지역',
-                        value: '${item.countryName}\n${item.cityName}',
+                        // 영문명 → 한국어명 변환 적용
+                        value: '${CountryModel.koreanFromEnglish(item.countryName)}\n${CityModel.koreanFromEnglish(item.cityName)}',
                         textAlign: TextAlign.right,
                       ),
                     ),
