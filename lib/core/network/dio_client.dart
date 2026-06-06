@@ -16,7 +16,10 @@ class DioClient {
   static const Duration _connectTimeout = Duration(seconds: 10);
   static const Duration _receiveTimeout = Duration(seconds: 15);
 
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  // [MODIFIED] 웹 스토리지 옵션 추가
+  final FlutterSecureStorage _storage = const FlutterSecureStorage(
+    webOptions: WebOptions(dbName: 'samak_db', publicKey: 'samak_key'),
+  );
 
   // Dio 인스턴스 지연 초기화
   late final Dio _dio = _buildDio();

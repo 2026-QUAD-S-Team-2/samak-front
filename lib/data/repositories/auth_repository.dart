@@ -6,7 +6,10 @@ class AuthRepository {
   AuthRepository._();
   static final AuthRepository instance = AuthRepository._();
 
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  // [MODIFIED] 웹 스토리지 옵션 추가
+  final FlutterSecureStorage _storage = const FlutterSecureStorage(
+    webOptions: WebOptions(dbName: 'samak_db', publicKey: 'samak_key'),
+  );
 
   /// 로그아웃 — 서버 토큰 무효화 후 로컬 저장소 초기화
   Future<void> logout() async {

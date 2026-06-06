@@ -22,9 +22,12 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
   static bool _isGoogleSignInInitialized = false;
-  StreamSubscription<GoogleSignInAuthenticationEvent>? _authSubscription; // 리스터 저장할 변수
+  StreamSubscription<GoogleSignInAuthenticationEvent>? _authSubscription;
 
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  // [MODIFIED] 웹 스토리지 옵션 추가
+  final FlutterSecureStorage _storage = const FlutterSecureStorage(
+    webOptions: WebOptions(dbName: 'samak_db', publicKey: 'samak_key'),
+  );
   bool _isLoading = false;
 
   // 구글 로그인 인스턴스
