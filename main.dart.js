@@ -99399,7 +99399,7 @@ return new A.n9(A.ax(a.h(0,"identifierType")),A.ax(a.h(0,"identifierValue")),A.r
 $S:637}
 A.UV.prototype={
 J(a){var s=null
-return new A.Ed(B.uT,"SamakFE",A.yN(s,A.aQI(B.ay,s,s,B.a3),A.aTW(s,s,s,B.aa,B.pI,s,B.L.aC(B.k),s,s,s,s,s,new A.cj(A.aS(8),B.v),s),!0),!1,s)}}
+return new A.Ed(B.uT,"Samak",A.yN(s,A.aQI(B.ay,s,s,B.a3),A.aTW(s,s,s,B.aa,B.pI,s,B.L.aC(B.k),s,s,s,s,s,new A.cj(A.aS(8),B.v),s),!0),!1,s)}}
 A.tr.prototype={
 ae(){return new A.JP(new A.bF(null,t.sW),new A.bF(null,t.Hx),A.c(["\uc0ac\ub9c9","\ud53c\ud574 \uc0ac\ub840","\ubd84\uc11d \uc804\uccb4 \ub9ac\uc2a4\ud2b8","\uac8c\uc2dc\ud310","\ud504\ub85c\ud544"],t.s))}}
 A.JP.prototype={
@@ -99461,7 +99461,7 @@ e=A.bY(a,g,t.w).w
 s=t.p
 r=A.bT(A.c([A.eQ("assets/icons/ic_appBar_title.svg",g,B.aS,24,g),B.eE,A.c4(g,B.Tk,B.C,!1,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,new A.aDf(a),g,g,g,g,g,g,!1,B.N)],s),B.z,B.o,B.p)
 q=h.vH("assets/icons/ic_home_filled.svg","assets/icons/ic_home.svg",0,"\ud648")
-p=h.vH("assets/icons/ic_heart_filled.svg","assets/icons/ic_heart.svg",1,"\uc18c\uc2dd")
+p=h.vH("assets/icons/ic_alert_filled.svg","assets/icons/ic_alert.svg",1,"\ud53c\ud574 \uc0ac\ub840")
 o=h.vH("assets/icons/ic_add_filled.svg","assets/icons/ic_add.svg",2,"\ubd84\uc11d")
 n=h.vH("assets/icons/ic_chat-dots_filled.svg","assets/icons/ic_chat-dots.svg",3,"\uac8c\uc2dc\ud310")
 m=h.vH("assets/icons/ic_user_filled.svg","assets/icons/ic_user.svg",4,"\ud504\ub85c\ud544")
