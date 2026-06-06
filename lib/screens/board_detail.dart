@@ -18,6 +18,7 @@ import '../data/repositories/member_repository.dart';
 import '../data/models/board_model.dart';
 import '../core/network/api_exception.dart';
 import '../screens/profile_screen.dart';
+import '../screens/analysis_result.dart';
 
 class BoardDetailScreen extends StatefulWidget {
   final int postId;
@@ -384,6 +385,41 @@ class _PostBodyCard extends StatelessWidget {
           ],
 
           // [MODIFIED] 연결된 분석 아이템 ID 표시 박스 삭제
+          // 수정 후
+          // [수정] analysisItemId가 있으면 '분석 결과 보러 가기' 버튼 표시
+          if (post.analysisItemId != null) ...[
+            const SizedBox(height: 16),
+            GestureDetector(
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => AnalysisResultScreen(
+                    analysisItemId: post.analysisItemId!,
+                    onBack: () => Navigator.of(context).pop(),
+                  ),
+                ),
+              ),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                decoration: BoxDecoration(
+                  color: AppColors.surfacePrimary,
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(color: AppColors.primary, width: 1.5),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.search, color: AppColors.primary, size: 18),
+                    const SizedBox(width: 6),
+                    Text(
+                      '분석 결과 보러 가기',
+                      style: AppTypography.middleBold15.copyWith(color: AppColors.primary),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

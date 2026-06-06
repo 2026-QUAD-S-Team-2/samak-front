@@ -196,7 +196,7 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
           category: 'AI_ANALYSIS',
           title: '${_resultData!.companyName}의 AI 분석 결과',
           // [MODIFIED] ** 마크다운 강조 문법 제거 후 전달
-          content: _stripMarkdownBold(_resultData!.companySummary),
+          content: '${_resultData!.companyName}의 AI 분석 결과가 공유되었습니다.\n아래 버튼을 눌러 결과를 확인해보세요.',
           imageNames: [],
           analysisItemId: widget.analysisItemId,
         ),
