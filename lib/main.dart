@@ -39,6 +39,15 @@ class SamakFEApp extends StatelessWidget {
           ),
         ),
       ),
+      // [MODIFIED] 모바일 크기 고정을 위한 builder 추가
+      builder: (context, child) {
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 430),
+            child: child!,
+          ),
+        );
+      },
       home: const LoadingScreen(),
     );
   }
@@ -141,7 +150,7 @@ class _MainScreenState extends State<MainScreen> {
       ),
       // [MODIFIED] 사이드바 디자인 전면 변경: 로고+X 헤더 / 선택 시 Filled 아이콘 / 하단 로그아웃+프로필
       drawer: Drawer(
-        width: MediaQuery.of(context).size.width * 0.75,
+        width: (MediaQuery.of(context).size.width > 430 ? 430 : MediaQuery.of(context).size.width) * 0.75,
         backgroundColor: AppColors.surfacePrimary,
         child: SafeArea(
           child: Column(
