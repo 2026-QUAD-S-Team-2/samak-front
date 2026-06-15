@@ -79,8 +79,6 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
   bool _isLoading = true;
   String? _errorMessage;
   AnalysisResultData? _resultData;
-  static const Duration _pollInterval = Duration(seconds: 3);
-  static const int _maxPollCount = 30;
   String? _profileImageUrl;
 
   @override
@@ -93,69 +91,54 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
   Future<void> _loadResult() async {
     try {
       final id = widget.analysisItemId;
+      final detail = await AnalysisRepository.instance.getDetail(id);
 
-      int pollCount = 0;
-      while (true) {
-        final detail = await AnalysisRepository.instance.getDetail(id);
+      if (detail.status == AnalysisStatus.completed) {
+        final results = await Future.wait([
+          AnalysisRepository.instance.getAiAnalysis(id),
+          AnalysisRepository.instance.getCountryWarning(id),
+          ReportRepository.instance.getReportHistory(
+            companyName: detail.companyName,
+            identifierType: detail.contactType,
+          ),
+        ]);
 
-        if (detail.status == AnalysisStatus.completed) {
-          final results = await Future.wait([
-            AnalysisRepository.instance.getAiAnalysis(id),
-            AnalysisRepository.instance.getCountryWarning(id),
-            ReportRepository.instance.getReportHistory(
-              companyName: detail.companyName,
-              identifierType: detail.contactType,
-            ),
-          ]);
+        final aiResult = results[0] as AiAnalysisResultModel;
+        final warning = results[1] as dynamic;
+        final historyItems = results[2] as List<ReportHistoryItemModel>;
 
-          final aiResult = results[0] as AiAnalysisResultModel;
-          final warning = results[1] as dynamic;
-          final historyItems = results[2] as List<ReportHistoryItemModel>;
+        final reportHistory = historyItems.isEmpty
+            ? '신고 이력이 없습니다.'
+            : historyItems.map((h) {
+              final date =
+                  '${h.reportedAt.year}.${h.reportedAt.month.toString().padLeft(2, '0')}';
+              return '• ${h.identifierType}: ${h.identifierValue}  ($date)';
+            }).join('\n');
 
-          final reportHistory = historyItems.isEmpty
-              ? '신고 이력이 없습니다.'
-              : historyItems.map((h) {
-            final date =
-                '${h.reportedAt.year}.${h.reportedAt.month.toString().padLeft(2, '0')}';
-            return '• ${h.identifierType}: ${h.identifierValue}  ($date)';
-          }).join('\n');
+        final trustLevel = switch (100 - aiResult.riskScore) {
+          >= 70 => TrustLevel.good,
+          >= 40 => TrustLevel.normal,
+          _ => TrustLevel.bad,
+        };
 
-          final trustLevel = switch (100 - aiResult.riskScore) {
-            >= 70 => TrustLevel.good,
-            >= 40 => TrustLevel.normal,
-            _ => TrustLevel.bad,
-          };
-
-          setState(() {
-            _resultData = AnalysisResultData(
-              companyName: detail.companyName as String,
-              trustScore: 100 - aiResult.riskScore,
-              trustLevel: trustLevel,
-              companySummary: aiResult.message,
-              countryVerification: warning.warningMessage as String,
-              reportHistory: reportHistory,
-              reportHistoryCount: historyItems.length,
-              location: aiResult.location,
-            );
-            _isLoading = false;
-          });
-          return;
-        } else if (detail.status == AnalysisStatus.failed) {
-          setState(() {
-            _errorMessage = '분석에 실패했습니다. 다시 시도해 주세요.';
-            _isLoading = false;
-          });
-          return;
-        } else if (pollCount >= _maxPollCount) {
-          setState(() {
-            _errorMessage = '분석에 시간이 오래 걸리고 있습니다. 잠시 후 다시 확인해 주세요.';
-            _isLoading = false;
-          });
-          return;
-        }
-
-        pollCount++;
-        await Future.delayed(_pollInterval);
+        setState(() {
+          _resultData = AnalysisResultData(
+            companyName: detail.companyName as String,
+            trustScore: 100 - aiResult.riskScore,
+            trustLevel: trustLevel,
+            companySummary: aiResult.message,
+            countryVerification: warning.warningMessage as String,
+            reportHistory: reportHistory,
+            reportHistoryCount: historyItems.length,
+            location: aiResult.location,
+          );
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _errorMessage = '분석이 완료되지 않았습니다.';
+          _isLoading = false;
+        });
       }
     } on ApiException catch (e) {
       setState(() {
