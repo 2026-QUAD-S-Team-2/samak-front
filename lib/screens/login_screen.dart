@@ -255,6 +255,7 @@ class _CascadingVerificationCardsState extends State<CascadingVerificationCards>
           ),
         ),
 
+        // [MODIFIED] Padding 좌우 고정값 제거, IntrinsicWidth로 텍스트 너비에 맞게 박스 크기 결정
         SizeTransition(
           sizeFactor: CurvedAnimation(
             parent: _controller,
@@ -279,32 +280,35 @@ class _CascadingVerificationCardsState extends State<CascadingVerificationCards>
     );
   }
 
+  // [MODIFIED] IntrinsicWidth로 감싸서 텍스트 너비 기준으로 박스가 결정되도록 변경, 최소 너비 160 보장
   Widget _buildInfoCard(String text) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 12.0, left: 120.0, right: 120.0),
-      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            text,
-            style: AppTypography.large16.copyWith(
-              color: AppColors.info,
+    return Center(
+      child: IntrinsicWidth(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 160),
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 12.0),
+            padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(15),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Text(
+              text,
+              style: AppTypography.large16.copyWith(
+                color: AppColors.info,
+              ),
+              textAlign: TextAlign.center,
             ),
           ),
-        ],
+        ),
       ),
     );
   }
