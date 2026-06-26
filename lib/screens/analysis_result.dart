@@ -186,7 +186,7 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('게시물에 공유되었습니다.')),
+        const SnackBar(content: Text('게시판에 공유되었습니다.')),
       );
     } on ApiException catch (e) {
       if (!mounted) return;
